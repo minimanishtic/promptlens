@@ -22,7 +22,7 @@ export default function HeroSearch() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={'Search prompts\u2026 e.g. \u201ccinematic portrait golden hour\u201d'}
+          placeholder="Search prompts... e.g. cinematic portrait golden hour"
           className="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-500 text-white placeholder-zinc-500 rounded-xl pl-12 pr-32 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-violet-500/20"
         />
         <button
