@@ -64,7 +64,7 @@ export type SavedPrompt = {
   collection_id: string | null
   notes: string | null
   tags: string[] | null
-  saved_at: string | null
+  created_at: string | null
   generation?: Generation
 }
 

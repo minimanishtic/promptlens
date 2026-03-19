@@ -13,7 +13,7 @@ import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import type { SavedPrompt, PromptCollection, Generation } from '@/types/database'
 
 // Sort option
-type SortBy = 'saved_at' | 'views_count' | 'prompt'
+type SortBy = 'created_at' | 'views_count' | 'prompt'
 
 function formatDate(iso: string | null) {
   if (!iso) return ''
@@ -87,7 +87,7 @@ function LibraryCard({
         )}
         <p className="text-xs text-zinc-500 flex items-center gap-1">
           <Calendar className="w-3 h-3" />
-          {formatDate(saved.saved_at)}
+          {formatDate(saved.created_at)}
         </p>
         {gen?.views_count != null && (
           <p className="text-xs text-zinc-600 flex items-center gap-1">
@@ -152,7 +152,7 @@ export default function LibraryClient() {
   const [savedPrompts, setSavedPrompts] = useState<(SavedPrompt & { generation?: Generation })[]>([])
   const [collections, setCollections] = useState<PromptCollection[]>([])
   const [activeCollection, setActiveCollection] = useState<string | 'all'>('all')
-  const [sortBy, setSortBy] = useState<SortBy>('saved_at')
+  const [sortBy, setSortBy] = useState<SortBy>('created_at')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [showNewCollection, setShowNewCollection] = useState(false)
@@ -174,7 +174,7 @@ export default function LibraryClient() {
       .from('saved_prompts')
       .select('*')
       .eq('user_id', user.id)
-      .order('saved_at', { ascending: false })
+      .order('created_at', { ascending: false })
 
     console.log('[Library] saved_prompts response:', {
       data: savedRes.data,
@@ -279,7 +279,7 @@ export default function LibraryClient() {
     .sort((a, b) => {
       if (sortBy === 'views_count') return (b.generation?.views_count ?? 0) - (a.generation?.views_count ?? 0)
       if (sortBy === 'prompt') return (a.generation?.prompt ?? '').localeCompare(b.generation?.prompt ?? '')
-      return new Date(b.saved_at ?? 0).getTime() - new Date(a.saved_at ?? 0).getTime()
+      return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
     })
 
   if (!user) {
@@ -349,7 +349,7 @@ export default function LibraryClient() {
                 onChange={e => setSortBy(e.target.value as SortBy)}
                 className="appearance-none bg-zinc-900 border border-zinc-700 rounded-lg pl-3 pr-8 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-violet-500 transition-colors cursor-pointer"
               >
-                <option value="saved_at">Date saved</option>
+                <option value="created_at">Date saved</option>
                 <option value="views_count">Views</option>
                 <option value="prompt">Alphabetical</option>
               </select>
