@@ -2,12 +2,19 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Eye, ArrowRight, Layers } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { NavAuthButton } from '@/components/UserMenu'
 import MobileNav from '@/components/MobileNav'
 import type { Generation } from '@/types/database'
+import type { Database } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import HeroSearch from '@/components/HeroSearch'
+
+// Plain server-side client — no cookie handling needed for public reads
+const db = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+)
 
 export const metadata: Metadata = {
   title: 'PromptLens — Visual Prompt Intelligence',
@@ -26,7 +33,7 @@ export const dynamic = 'force-dynamic'
 // ─── data fetching ────────────────────────────────────────────────────────────
 
 async function getTrendingImages(): Promise<Generation[]> {
-  const { data } = await supabase
+  const { data } = await db
     .from('generations')
     .select('*')
     .order('views_count', { ascending: false })
@@ -38,7 +45,7 @@ async function getCategoryData(): Promise<
   { name: string; count: number; thumbnail: string | null }[]
 > {
   // Get categories with counts from the generations table directly
-  const { data: catRows } = await supabase
+  const { data: catRows } = await db
     .from('generations')
     .select('primary_category')
     .not('primary_category', 'is', null)
@@ -57,7 +64,7 @@ async function getCategoryData(): Promise<
 
   const withThumbs = await Promise.all(
     categories.map(async ([name, count]) => {
-      const { data } = await supabase
+      const { data } = await db
         .from('generations')
         .select('output_image_url_min, output_image_url')
         .eq('primary_category', name)
@@ -145,7 +152,7 @@ function CategoryCard({
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105 brightness-50 group-hover:brightness-60"
           unoptimized
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
         />
       )}
       {/* Gradient overlay */}
