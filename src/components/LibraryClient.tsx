@@ -159,9 +159,8 @@ export default function LibraryClient() {
   const [bulkLoading, setBulkLoading] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
-  // Stable client — not recreated on every render
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const supabase = useCallback(() => createClient(), [])()
+  // createClient() returns a singleton — safe to call directly
+  const supabase = createClient()
 
   const loadData = useCallback(async () => {
     if (!user) return
@@ -230,7 +229,7 @@ export default function LibraryClient() {
     setSavedPrompts(enriched)
     setLoading(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, supabase])
+  }, [user])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -239,8 +238,7 @@ export default function LibraryClient() {
     await (supabase as any).from('saved_prompts').delete().eq('id', id)
     setSavedPrompts(prev => prev.filter(s => s.id !== id))
     setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabase])
+  }, [])
 
   const handleBulkDelete = useCallback(async () => {
     setBulkLoading(true)
@@ -249,8 +247,7 @@ export default function LibraryClient() {
     setSavedPrompts(prev => prev.filter(s => !selectedIds.has(s.id)))
     setSelectedIds(new Set())
     setBulkLoading(false)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedIds, supabase])
+  }, [selectedIds])
 
   const handleCreateCollection = useCallback(async (name: string) => {
     if (!user) return
@@ -262,8 +259,7 @@ export default function LibraryClient() {
       .single()
     if (data) setCollections(prev => [...prev, data as PromptCollection])
     setShowNewCollection(false)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, supabase])
+  }, [user])
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {

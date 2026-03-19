@@ -1,14 +1,17 @@
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/database'
+import { createClient as createBrowserSupabaseClient } from './supabase-client'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Single browser client instance — reuses the SSR-aware singleton.
+// This ensures only one GoTrueClient exists in the browser.
+let _supabase: ReturnType<typeof createBrowserSupabaseClient> | null = null
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase environment variables.\n' +
-    'Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your Vercel project settings under Settings → Environment Variables.',
-  )
-}
-
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+export const supabase = (() => {
+  if (typeof window !== 'undefined') {
+    // Browser: use the SSR-aware singleton
+    if (!_supabase) {
+      _supabase = createBrowserSupabaseClient()
+    }
+    return _supabase
+  }
+  // Server: createBrowserClient is safe to call here too (no localStorage in Node)
+  return createBrowserSupabaseClient()
+})()
