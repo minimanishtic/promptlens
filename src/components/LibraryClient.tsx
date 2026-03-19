@@ -47,12 +47,12 @@ function LibraryCard({
         className={`absolute top-1 left-1 z-10 p-2 rounded-full flex items-center justify-center transition-all duration-150
           ${selected
             ? 'opacity-100'
-            : 'opacity-70 sm:opacity-0 sm:group-hover:opacity-100'
+            : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'
           }`}
         aria-label={selected ? 'Deselect' : 'Select'}
       >
-        <span className={`w-6 h-6 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center
-          ${selected ? 'bg-violet-600 border-violet-600' : 'bg-black/50 border-zinc-600'}`}>
+        <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shadow-md
+          ${selected ? 'bg-violet-600 border-violet-600' : 'bg-zinc-900/90 border-zinc-500'}`}>
           {selected && <Check className="w-3.5 h-3.5 text-white" />}
         </span>
       </button>
@@ -60,10 +60,10 @@ function LibraryCard({
       {/* Delete */}
       <button
         onClick={() => onDelete(saved.id)}
-        className="absolute top-1 right-1 z-10 p-2 rounded-full flex items-center justify-center text-zinc-400 hover:text-red-400 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-150"
+        className="absolute top-1 right-1 z-10 p-2 rounded-full flex items-center justify-center text-zinc-300 hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-150"
         aria-label="Remove from library"
       >
-        <span className="w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-black/60 flex items-center justify-center">
+        <span className="w-6 h-6 rounded-full bg-zinc-900/90 border border-zinc-700 shadow-md flex items-center justify-center">
           <X className="w-3.5 h-3.5" />
         </span>
       </button>

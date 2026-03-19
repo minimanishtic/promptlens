@@ -141,12 +141,15 @@ function SearchContent() {
     // More pages always use full-text (semantic is one-shot)
     try {
       const rows = await fullTextSearch(q, pageRef.current)
-      setFtResults((prev) => [...prev, ...rows])
-      // If we were in semantic mode, switch to hybrid label for subsequent pages
-      if (mode === 'semantic') setMode('fulltext')
+      if (rows.length > 0) {
+        setFtResults((prev) => [...prev, ...rows])
+        // Only switch label once we actually have additional full-text rows to show
+        if (mode === 'semantic') setMode('fulltext')
+      }
       setHasMore(rows.length === PAGE_SIZE)
     } catch (err) {
       console.error('Load more failed:', err)
+      setHasMore(false)
     }
 
     setLoadingMore(false)
@@ -278,8 +281,8 @@ function SearchContent() {
           </div>
         )}
 
-        {/* Empty state */}
-        {done && totalCount === 0 && (
+        {/* Empty state — only show when truly no results from either search path */}
+        {done && !loadingMore && totalCount === 0 && (
           <div className="flex flex-col items-center justify-center py-32 text-center flex-1">
             <Frown className="w-12 h-12 text-zinc-700 mb-4" />
             <p className="text-zinc-300 text-lg font-medium mb-2">No results found</p>

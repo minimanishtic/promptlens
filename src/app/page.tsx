@@ -42,6 +42,7 @@ async function getCategoryData(): Promise<
     .from('generations')
     .select('primary_category')
     .not('primary_category', 'is', null)
+    .limit(10000)
 
   if (!catRows) return []
 
