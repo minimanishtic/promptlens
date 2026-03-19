@@ -44,14 +44,14 @@ async function getTrendingImages(): Promise<Generation[]> {
 // Hard-coded category list so we never rely on scanning all rows to discover them.
 // These are the 8 known primary_category values in the database.
 const KNOWN_CATEGORIES = [
-  'Cinematic & Film Still',
-  'Fantasy & Creative',
   'Portrait & Headshot',
   'Fashion & Editorial',
-  'Nature & Landscape',
-  'Action & Sports',
-  'Urban & Street',
-  'Product & Commercial',
+  'Fantasy & Creative',
+  'Cinematic & Film Still',
+  'Landscape & Architecture',
+  'Street & Documentary',
+  'Product Photography',
+  'Identity Transform',
 ]
 
 async function getCategoryData(): Promise<
@@ -226,7 +226,7 @@ export default async function HomePage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[400px] bg-violet-600/10 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative max-w-screen-xl mx-auto px-4 pt-24 pb-20 flex flex-col items-center text-center">
+        <div className="relative max-w-screen-xl mx-auto px-4 pt-16 pb-10 sm:pt-24 sm:pb-20 flex flex-col items-center text-center">
           {/* Badge */}
           <div className="flex items-center gap-2 bg-violet-600/10 border border-violet-600/20 text-violet-300 text-xs px-3 py-1.5 rounded-full mb-6">
             <Layers className="w-3.5 h-3.5" />
@@ -248,10 +248,10 @@ export default async function HomePage() {
       </section>
 
       {/* ── Categories ── */}
-      <section className="max-w-screen-xl mx-auto px-4 py-16">
-        <div className="flex items-center justify-between mb-6">
+      <section className="max-w-screen-xl mx-auto px-4 py-8 sm:py-16">
+        <div className="flex items-center justify-between gap-4 mb-6">
           <h2 className="text-xl font-semibold text-white">Browse by Category</h2>
-          <Link href="/browse" className="text-sm text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1">
+          <Link href="/browse" className="text-sm text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 shrink-0">
             View all <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
