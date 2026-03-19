@@ -41,49 +41,52 @@ async function getTrendingImages(): Promise<Generation[]> {
   return (data as Generation[]) ?? []
 }
 
+// Hard-coded category list so we never rely on scanning all rows to discover them.
+// These are the 8 known primary_category values in the database.
+const KNOWN_CATEGORIES = [
+  'Cinematic & Film Still',
+  'Fantasy & Creative',
+  'Portrait & Headshot',
+  'Fashion & Editorial',
+  'Nature & Landscape',
+  'Action & Sports',
+  'Urban & Street',
+  'Product & Commercial',
+]
+
 async function getCategoryData(): Promise<
   { name: string; count: number; thumbnail: string | null }[]
 > {
-  // Get categories with counts from the generations table directly
-  const { data: catRows } = await db
-    .from('generations')
-    .select('primary_category')
-    .not('primary_category', 'is', null)
-    .limit(10000)
+  // Fetch count + top thumbnail for each category in parallel
+  const results = await Promise.all(
+    KNOWN_CATEGORIES.map(async (name) => {
+      const [countRes, thumbRes] = await Promise.all([
+        db
+          .from('generations')
+          .select('id', { count: 'exact', head: true })
+          .eq('primary_category', name),
+        db
+          .from('generations')
+          .select('output_image_url_min, output_image_url')
+          .eq('primary_category', name)
+          .order('views_count', { ascending: false })
+          .limit(1)
+          .single(),
+      ])
 
-  if (!catRows) return []
-
-  const counts: Record<string, number> = {}
-  for (const row of catRows as { primary_category: string | null }[]) {
-    const c = row.primary_category
-    if (c) counts[c] = (counts[c] ?? 0) + 1
-  }
-
-  // Fetch one representative image per category in parallel
-  const categories = Object.entries(counts).sort((a, b) => b[1] - a[1])
-
-  const withThumbs = await Promise.all(
-    categories.map(async ([name, count]) => {
-      const { data } = await db
-        .from('generations')
-        .select('output_image_url_min, output_image_url')
-        .eq('primary_category', name)
-        .order('views_count', { ascending: false })
-        .limit(1)
-        .single()
-
-      const thumbnail =
-        (data as { output_image_url_min: string | null; output_image_url: string | null } | null)
-          ?.output_image_url_min ??
-        (data as { output_image_url_min: string | null; output_image_url: string | null } | null)
-          ?.output_image_url ??
-        null
+      const count = countRes.count ?? 0
+      const thumbData = thumbRes.data as {
+        output_image_url_min: string | null
+        output_image_url: string | null
+      } | null
+      const thumbnail = thumbData?.output_image_url_min ?? thumbData?.output_image_url ?? null
 
       return { name, count, thumbnail }
     }),
   )
 
-  return withThumbs
+  // Sort by image count descending so most-populated categories appear first
+  return results.sort((a, b) => b.count - a.count)
 }
 
 // ─── sub-components ───────────────────────────────────────────────────────────
