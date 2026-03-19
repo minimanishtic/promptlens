@@ -186,13 +186,17 @@ export default async function ImageDetailPage({
           <a href="/" className="text-lg font-bold text-white shrink-0">
             Prompt<span className="text-violet-500">Lens</span>
           </a>
-          <span className="text-zinc-700">|</span>
+          <span className="text-zinc-700 hidden sm:block">|</span>
+          <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
+            <Link href="/browse" className="hover:text-white transition-colors">Browse</Link>
+            <Link href="/glossary" className="hover:text-white transition-colors">Glossary</Link>
+          </nav>
           <Link
             href="/browse"
-            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors sm:hidden"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Browse
+            Browse
           </Link>
         </div>
       </header>

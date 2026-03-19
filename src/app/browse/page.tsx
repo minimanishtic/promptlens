@@ -250,7 +250,10 @@ function BrowseContent() {
             Prompt<span className="text-violet-500">Lens</span>
           </a>
           <span className="text-zinc-700 hidden sm:block">|</span>
-          <span className="text-sm text-zinc-400 hidden sm:block">Browse</span>
+          <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
+            <span className="text-white font-medium">Browse</span>
+            <a href="/glossary" className="hover:text-white transition-colors">Glossary</a>
+          </nav>
 
           <div className="ml-auto flex items-center gap-2">
             {/* Mobile filter toggle */}

@@ -178,9 +178,12 @@ export default async function HomePage() {
           <span className="text-lg font-bold">
             Prompt<span className="text-violet-500">Lens</span>
           </span>
-          <nav className="flex items-center gap-6">
-            <Link href="/browse" className="text-sm text-zinc-400 hover:text-white transition-colors">
+          <nav className="flex items-center gap-5">
+            <Link href="/browse" className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block">
               Browse
+            </Link>
+            <Link href="/glossary" className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block">
+              Glossary
             </Link>
             <Link
               href="/browse"
@@ -286,6 +289,7 @@ export default async function HomePage() {
           <span>Powered by Higgsfield AI community data</span>
           <div className="flex items-center gap-4">
             <Link href="/browse" className="hover:text-zinc-300 transition-colors">Browse</Link>
+            <Link href="/glossary" className="hover:text-zinc-300 transition-colors">Glossary</Link>
           </div>
         </div>
       </footer>
