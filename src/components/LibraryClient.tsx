@@ -157,59 +157,100 @@ export default function LibraryClient() {
   const [loading, setLoading] = useState(true)
   const [showNewCollection, setShowNewCollection] = useState(false)
   const [bulkLoading, setBulkLoading] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
-  const supabase = createClient()
+  // Stable client — not recreated on every render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const supabase = useCallback(() => createClient(), [])()
 
   const loadData = useCallback(async () => {
     if (!user) return
     setLoading(true)
+    setFetchError(null)
 
-    const [savedRes, collectionsRes] = await Promise.all([
-      supabase
-        .from('saved_prompts')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('saved_at', { ascending: false }),
-      supabase
-        .from('prompt_collections')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true }),
-    ])
+    // ── 1. Fetch saved_prompts ────────────────────────────────────────────────
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const savedRes = await (supabase as any)
+      .from('saved_prompts')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('saved_at', { ascending: false })
 
-    const saved = (savedRes.data ?? []) as SavedPrompt[]
+    console.log('[Library] saved_prompts response:', {
+      data: savedRes.data,
+      error: savedRes.error,
+      count: savedRes.data?.length,
+    })
+
+    if (savedRes.error) {
+      console.error('[Library] saved_prompts error:', savedRes.error)
+      setFetchError(savedRes.error.message)
+      setLoading(false)
+      return
+    }
+
+    // ── 2. Fetch collections ──────────────────────────────────────────────────
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const collectionsRes = await (supabase as any)
+      .from('prompt_collections')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true })
+
     setCollections((collectionsRes.data ?? []) as PromptCollection[])
 
-    if (saved.length === 0) { setSavedPrompts([]); setLoading(false); return }
+    const saved = (savedRes.data ?? []) as SavedPrompt[]
 
-    // Fetch full generation records
-    const ids = saved.map(s => s.job_set_id)
-    const { data: genData } = await supabase
+    if (saved.length === 0) {
+      setSavedPrompts([])
+      setLoading(false)
+      return
+    }
+
+    // ── 3. Enrich with generation records via job_set_id ──────────────────────
+    const ids = [...new Set(saved.map((s: SavedPrompt) => s.job_set_id).filter(Boolean))]
+    console.log('[Library] fetching generations for job_set_ids:', ids)
+
+    const { data: genData, error: genError } = await supabase
       .from('generations')
       .select('*')
       .in('job_set_id', ids)
 
-    const genMap = new Map((genData as Generation[] ?? []).map(g => [g.job_set_id, g]))
-    const enriched = saved.map(s => ({ ...s, generation: genMap.get(s.job_set_id) }))
+    console.log('[Library] generations response:', { data: genData, error: genError, count: genData?.length })
+
+    const genMap = new Map(
+      ((genData as Generation[]) ?? []).map(g => [g.job_set_id, g]),
+    )
+
+    const enriched = saved.map((s: SavedPrompt) => ({
+      ...s,
+      generation: genMap.get(s.job_set_id),
+    }))
+
     setSavedPrompts(enriched)
     setLoading(false)
-  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, supabase])
 
   useEffect(() => { loadData() }, [loadData])
 
   const handleDelete = useCallback(async (id: string) => {
-    await supabase.from('saved_prompts').delete().eq('id', id)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from('saved_prompts').delete().eq('id', id)
     setSavedPrompts(prev => prev.filter(s => s.id !== id))
     setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n })
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase])
 
   const handleBulkDelete = useCallback(async () => {
     setBulkLoading(true)
-    await supabase.from('saved_prompts').delete().in('id', [...selectedIds])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from('saved_prompts').delete().in('id', [...selectedIds])
     setSavedPrompts(prev => prev.filter(s => !selectedIds.has(s.id)))
     setSelectedIds(new Set())
     setBulkLoading(false)
-  }, [selectedIds]) // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIds, supabase])
 
   const handleCreateCollection = useCallback(async (name: string) => {
     if (!user) return
@@ -221,7 +262,8 @@ export default function LibraryClient() {
       .single()
     if (data) setCollections(prev => [...prev, data as PromptCollection])
     setShowNewCollection(false)
-  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, supabase])
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -342,8 +384,19 @@ export default function LibraryClient() {
             </div>
           )}
 
+          {/* Fetch error */}
+          {!loading && fetchError && (
+            <div className="bg-red-900/20 border border-red-800/40 rounded-xl p-5 text-sm text-red-400">
+              <p className="font-medium mb-1">Failed to load your library</p>
+              <p className="text-red-500 font-mono text-xs">{fetchError}</p>
+              <button onClick={loadData} className="mt-3 text-xs text-red-400 underline hover:text-red-300">
+                Try again
+              </button>
+            </div>
+          )}
+
           {/* Empty state */}
-          {!loading && filtered.length === 0 && (
+          {!loading && !fetchError && filtered.length === 0 && (
             <div className="flex flex-col items-center justify-center py-24 gap-4 text-center bg-zinc-900 border border-zinc-800 rounded-xl">
               <BookMarked className="w-12 h-12 text-zinc-700" />
               <p className="text-zinc-400 font-medium">
@@ -361,7 +414,7 @@ export default function LibraryClient() {
           )}
 
           {/* Grid */}
-          {!loading && filtered.length > 0 && (
+          {!loading && !fetchError && filtered.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {filtered.map(saved => (
                 <LibraryCard
