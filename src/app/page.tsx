@@ -185,6 +185,9 @@ export default async function HomePage() {
             <Link href="/glossary" className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block">
               Glossary
             </Link>
+            <Link href="/analytics" className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block">
+              Analytics
+            </Link>
             <Link
               href="/browse"
               className="text-sm bg-violet-600 hover:bg-violet-500 text-white px-4 py-1.5 rounded-lg transition-colors"
@@ -290,6 +293,7 @@ export default async function HomePage() {
           <div className="flex items-center gap-4">
             <Link href="/browse" className="hover:text-zinc-300 transition-colors">Browse</Link>
             <Link href="/glossary" className="hover:text-zinc-300 transition-colors">Glossary</Link>
+            <Link href="/analytics" className="hover:text-zinc-300 transition-colors">Analytics</Link>
           </div>
         </div>
       </footer>

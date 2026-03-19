@@ -190,6 +190,7 @@ export default async function ImageDetailPage({
           <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
             <Link href="/browse" className="hover:text-white transition-colors">Browse</Link>
             <Link href="/glossary" className="hover:text-white transition-colors">Glossary</Link>
+            <Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link>
           </nav>
           <Link
             href="/browse"

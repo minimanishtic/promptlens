@@ -201,6 +201,7 @@ function SearchContent() {
           <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
             <a href="/browse" className="hover:text-white transition-colors">Browse</a>
             <a href="/glossary" className="hover:text-white transition-colors">Glossary</a>
+            <a href="/analytics" className="hover:text-white transition-colors">Analytics</a>
           </nav>
           <a
             href="/browse"

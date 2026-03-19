@@ -16,6 +16,7 @@ export default function GlossaryPage() {
             <Link href="/browse" className="hover:text-white transition-colors">Browse</Link>
             <Link href="/search" className="hover:text-white transition-colors">Search</Link>
             <Link href="/glossary" className="text-white font-medium">Glossary</Link>
+            <Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link>
           </nav>
         </div>
       </header>
