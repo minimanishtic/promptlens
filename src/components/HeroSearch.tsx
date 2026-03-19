@@ -40,7 +40,7 @@ export default function HeroSearch() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search prompts... e.g. cinematic portrait golden hour"
+          placeholder="Try: woman in golden hour with bokeh, dark moody product shot..."
           className="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-500 text-white placeholder-zinc-500 rounded-xl pl-12 pr-32 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-violet-500/20"
         />
         <button
@@ -52,9 +52,9 @@ export default function HeroSearch() {
         </button>
       </div>
       <p className="text-center text-xs text-zinc-600 mt-3">
-        Press{' '}
+        AI-powered semantic search &middot; Press{' '}
         <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono text-[10px]">/</kbd>
-        {' '}to focus search &middot; or{' '}
+        {' '}to focus &middot; or{' '}
         <a href="/browse" className="text-violet-400 hover:text-violet-300 transition-colors">
           browse all images
         </a>
