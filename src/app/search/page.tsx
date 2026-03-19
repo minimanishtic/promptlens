@@ -202,6 +202,7 @@ function SearchContent() {
             <a href="/browse" className="hover:text-white transition-colors">Browse</a>
             <a href="/glossary" className="hover:text-white transition-colors">Glossary</a>
             <a href="/analytics" className="hover:text-white transition-colors">Analytics</a>
+            <a href="/templates" className="hover:text-white transition-colors">Templates</a>
           </nav>
           <a
             href="/browse"
