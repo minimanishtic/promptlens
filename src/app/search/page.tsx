@@ -8,6 +8,7 @@ import type { Generation } from '@/types/database'
 import type { SemanticResult } from '@/app/api/search/route'
 import ImageCard from '@/components/ImageCard'
 import SemanticImageCard from '@/components/SemanticImageCard'
+import { NavAuthButton } from '@/components/UserMenu'
 import ImageCardSkeleton from '@/components/ImageCardSkeleton'
 
 const PAGE_SIZE = 24
@@ -204,7 +205,11 @@ function SearchContent() {
             <a href="/analytics" className="hover:text-white transition-colors">Analytics</a>
             <a href="/templates" className="hover:text-white transition-colors">Templates</a>
             <a href="/builder" className="hover:text-white transition-colors">Builder</a>
+            <a href="/library" className="hover:text-white transition-colors">Library</a>
           </nav>
+          <div className="ml-auto">
+            <NavAuthButton />
+          </div>
           <a
             href="/browse"
             className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors sm:hidden"

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BackToTop from "@/components/BackToTop";
+import { AuthProvider } from "@/context/AuthContext";
+import AuthModal from "@/components/AuthModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,8 +52,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://d2ol7oe51mr4n9.cloudfront.net" />
       </head>
       <body className="min-h-full flex flex-col bg-zinc-950 text-white">
-        {children}
-        <BackToTop />
+        <AuthProvider>
+          {children}
+          <AuthModal />
+          <BackToTop />
+        </AuthProvider>
       </body>
     </html>
   );

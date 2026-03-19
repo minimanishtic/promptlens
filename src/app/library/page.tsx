@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { Wand2 } from 'lucide-react'
-import WizardClient from '@/components/builder/WizardClient'
+import { BookMarked } from 'lucide-react'
+import LibraryClient from '@/components/LibraryClient'
 import { NavAuthButton } from '@/components/UserMenu'
 
-export default function BuilderPage() {
+export default function LibraryPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Nav */}
@@ -13,13 +13,13 @@ export default function BuilderPage() {
             Prompt<span className="text-violet-500">Lens</span>
           </a>
           <span className="text-zinc-700 hidden sm:block">|</span>
-          <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
-            <Link href="/browse"     className="hover:text-white transition-colors">Browse</Link>
-            <Link href="/glossary"   className="hover:text-white transition-colors">Glossary</Link>
-            <Link href="/analytics"  className="hover:text-white transition-colors">Analytics</Link>
-            <Link href="/templates"  className="hover:text-white transition-colors">Templates</Link>
-            <Link href="/builder"    className="text-white font-medium">Builder</Link>
-            <Link href="/library"    className="hover:text-white transition-colors">Library</Link>
+          <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400 flex-1">
+            <Link href="/browse"    className="hover:text-white transition-colors">Browse</Link>
+            <Link href="/glossary"  className="hover:text-white transition-colors">Glossary</Link>
+            <Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link>
+            <Link href="/templates" className="hover:text-white transition-colors">Templates</Link>
+            <Link href="/builder"   className="hover:text-white transition-colors">Builder</Link>
+            <Link href="/library"   className="text-white font-medium">Library</Link>
           </nav>
           <div className="ml-auto">
             <NavAuthButton />
@@ -32,23 +32,22 @@ export default function BuilderPage() {
         <div className="max-w-screen-xl mx-auto px-4 py-10 sm:py-14">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-violet-600/15 border border-violet-600/20 flex items-center justify-center">
-              <Wand2 className="w-5 h-5 text-violet-400" />
+              <BookMarked className="w-5 h-5 text-violet-400" />
             </div>
-            <span className="text-xs font-bold text-violet-400 uppercase tracking-widest">Prompt Builder</span>
+            <span className="text-xs font-bold text-violet-400 uppercase tracking-widest">My Library</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3 tracking-tight">
-            Build your perfect prompt
+            Your saved prompts
           </h1>
           <p className="text-zinc-400 text-base sm:text-lg max-w-2xl leading-relaxed">
-            Make visual choices at each step — every option shows real AI-generated examples from the community.
-            We&apos;ll find the top-performing prompts that match your exact creative vision.
+            Organise and revisit the AI image prompts that inspire you most.
           </p>
         </div>
       </section>
 
-      {/* Wizard */}
+      {/* Content */}
       <div className="max-w-screen-xl mx-auto px-4 py-10">
-        <WizardClient />
+        <LibraryClient />
       </div>
 
       {/* Footer */}
@@ -63,10 +62,8 @@ export default function BuilderPage() {
           <span>Powered by Higgsfield AI community data</span>
           <div className="flex items-center gap-4">
             <Link href="/browse"    className="hover:text-zinc-300 transition-colors">Browse</Link>
-            <Link href="/glossary"  className="hover:text-zinc-300 transition-colors">Glossary</Link>
+            <Link href="/library"   className="hover:text-zinc-300 transition-colors">Library</Link>
             <Link href="/analytics" className="hover:text-zinc-300 transition-colors">Analytics</Link>
-            <Link href="/templates" className="hover:text-zinc-300 transition-colors">Templates</Link>
-            <Link href="/builder"   className="hover:text-zinc-300 transition-colors">Builder</Link>
           </div>
         </div>
       </footer>

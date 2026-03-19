@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Eye, ArrowRight, Layers } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { NavAuthButton } from '@/components/UserMenu'
 import type { Generation } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import HeroSearch from '@/components/HeroSearch'
@@ -196,10 +197,11 @@ export default async function HomePage() {
             </Link>
             <Link
               href="/browse"
-              className="text-sm bg-violet-600 hover:bg-violet-500 text-white px-4 py-1.5 rounded-lg transition-colors"
+              className="text-sm bg-violet-600 hover:bg-violet-500 text-white px-4 py-1.5 rounded-lg transition-colors hidden sm:block"
             >
               Explore images
             </Link>
+            <NavAuthButton />
           </nav>
         </div>
       </header>
@@ -302,6 +304,7 @@ export default async function HomePage() {
             <Link href="/analytics" className="hover:text-zinc-300 transition-colors">Analytics</Link>
             <Link href="/templates" className="hover:text-zinc-300 transition-colors">Templates</Link>
             <Link href="/builder" className="hover:text-zinc-300 transition-colors">Builder</Link>
+            <Link href="/library" className="hover:text-zinc-300 transition-colors">Library</Link>
           </div>
         </div>
       </footer>

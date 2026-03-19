@@ -41,6 +41,33 @@ export type Category = {
   image_count: number | null
 }
 
+export type Profile = {
+  id: string
+  email: string | null
+  display_name: string | null
+  avatar_url: string | null
+  created_at: string | null
+}
+
+export type PromptCollection = {
+  id: string
+  user_id: string
+  name: string
+  description: string | null
+  created_at: string | null
+}
+
+export type SavedPrompt = {
+  id: string
+  user_id: string
+  job_set_id: string
+  collection_id: string | null
+  notes: string | null
+  tags: string[] | null
+  saved_at: string | null
+  generation?: Generation
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -53,6 +80,21 @@ export type Database = {
         Row: Category
         Insert: Partial<Category>
         Update: Partial<Category>
+      }
+      profiles: {
+        Row: Profile
+        Insert: Partial<Profile>
+        Update: Partial<Profile>
+      }
+      saved_prompts: {
+        Row: SavedPrompt
+        Insert: Partial<SavedPrompt>
+        Update: Partial<SavedPrompt>
+      }
+      prompt_collections: {
+        Row: PromptCollection
+        Insert: Partial<PromptCollection>
+        Update: Partial<PromptCollection>
       }
     }
   }

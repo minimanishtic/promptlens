@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { BarChart2, TrendingUp, Image as ImageIcon, Zap, Tag } from 'lucide-react'
 import { fetchAllAnalytics } from '@/lib/analytics'
+import { NavAuthButton } from '@/components/UserMenu'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import ModelByCategoryChart from '@/components/charts/ModelByCategoryChart'
 import ModelEngagementChart from '@/components/charts/ModelEngagementChart'
@@ -82,7 +83,11 @@ export default async function AnalyticsPage() {
             <Link href="/analytics" className="text-white font-medium">Analytics</Link>
             <Link href="/templates" className="hover:text-white transition-colors">Templates</Link>
             <Link href="/builder" className="hover:text-white transition-colors">Builder</Link>
+            <Link href="/library" className="hover:text-white transition-colors">Library</Link>
           </nav>
+          <div className="ml-auto">
+            <NavAuthButton />
+          </div>
         </div>
       </header>
 
@@ -217,6 +222,7 @@ export default async function AnalyticsPage() {
             <Link href="/analytics" className="hover:text-zinc-300 transition-colors">Analytics</Link>
             <Link href="/templates" className="hover:text-zinc-300 transition-colors">Templates</Link>
             <Link href="/builder" className="hover:text-zinc-300 transition-colors">Builder</Link>
+            <Link href="/library" className="hover:text-zinc-300 transition-colors">Library</Link>
           </div>
         </div>
       </footer>

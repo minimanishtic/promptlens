@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { FileText } from 'lucide-react'
 import { fetchTemplates, CATEGORIES } from '@/lib/templates'
 import TemplatesClient from '@/components/TemplatesClient'
+import { NavAuthButton } from '@/components/UserMenu'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,11 +19,16 @@ export default async function TemplatesPage() {
           </a>
           <span className="text-zinc-700 hidden sm:block">|</span>
           <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
-            <Link href="/browse" className="hover:text-white transition-colors">Browse</Link>
-            <Link href="/glossary" className="hover:text-white transition-colors">Glossary</Link>
-            <Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link>
-            <Link href="/templates" className="text-white font-medium">Templates</Link>
+            <Link href="/browse"     className="hover:text-white transition-colors">Browse</Link>
+            <Link href="/glossary"   className="hover:text-white transition-colors">Glossary</Link>
+            <Link href="/analytics"  className="hover:text-white transition-colors">Analytics</Link>
+            <Link href="/templates"  className="text-white font-medium">Templates</Link>
+            <Link href="/builder"    className="hover:text-white transition-colors">Builder</Link>
+            <Link href="/library"    className="hover:text-white transition-colors">Library</Link>
           </nav>
+          <div className="ml-auto">
+            <NavAuthButton />
+          </div>
         </div>
       </header>
 

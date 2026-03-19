@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase'
 import type { Generation } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import CopyPromptButton from '@/components/CopyPromptButton'
+import SavePromptButton from '@/components/SavePromptButton'
+import { NavAuthButton } from '@/components/UserMenu'
 import ImageCard from '@/components/ImageCard'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -193,7 +195,11 @@ export default async function ImageDetailPage({
             <Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link>
             <Link href="/templates" className="hover:text-white transition-colors">Templates</Link>
             <Link href="/builder" className="hover:text-white transition-colors">Builder</Link>
+            <Link href="/library" className="hover:text-white transition-colors">Library</Link>
           </nav>
+          <div className="ml-auto">
+            <NavAuthButton />
+          </div>
           <Link
             href="/browse"
             className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors sm:hidden"
@@ -275,9 +281,12 @@ export default async function ImageDetailPage({
 
             {/* Prompt */}
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Prompt</p>
-                {gen.prompt && <CopyPromptButton prompt={gen.prompt} />}
+                <div className="flex items-center gap-2">
+                  {gen.prompt && <CopyPromptButton prompt={gen.prompt} />}
+                  <SavePromptButton jobSetId={gen.job_set_id} />
+                </div>
               </div>
               <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">
                 {gen.prompt ?? (

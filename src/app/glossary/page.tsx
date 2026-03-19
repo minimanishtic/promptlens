@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
 import GlossarySearch from '@/components/GlossarySearch'
+import { NavAuthButton } from '@/components/UserMenu'
 
 export default function GlossaryPage() {
   return (
@@ -19,7 +20,11 @@ export default function GlossaryPage() {
             <Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link>
             <Link href="/templates" className="hover:text-white transition-colors">Templates</Link>
             <Link href="/builder" className="hover:text-white transition-colors">Builder</Link>
+            <Link href="/library" className="hover:text-white transition-colors">Library</Link>
           </nav>
+          <div className="ml-auto">
+            <NavAuthButton />
+          </div>
         </div>
       </header>
 

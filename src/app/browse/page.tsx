@@ -7,6 +7,7 @@ import type { FilterState, Generation, SortOption } from '@/types/database'
 import ImageCard from '@/components/ImageCard'
 import ImageCardSkeleton from '@/components/ImageCardSkeleton'
 import FilterSidebar from '@/components/FilterSidebar'
+import { NavAuthButton } from '@/components/UserMenu'
 import { SlidersHorizontal, X, FilterX } from 'lucide-react'
 
 const PAGE_SIZE = 24
@@ -256,9 +257,11 @@ function BrowseContent() {
             <a href="/analytics" className="hover:text-white transition-colors">Analytics</a>
             <a href="/templates" className="hover:text-white transition-colors">Templates</a>
             <a href="/builder" className="hover:text-white transition-colors">Builder</a>
+            <a href="/library" className="hover:text-white transition-colors">Library</a>
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            <NavAuthButton />
             {/* Mobile filter toggle */}
             <button
               className="flex items-center gap-2 text-sm text-zinc-300 lg:hidden bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-lg transition-colors"
