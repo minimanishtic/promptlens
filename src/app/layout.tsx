@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import BackToTop from "@/components/BackToTop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +20,11 @@ export const metadata: Metadata = {
   },
   description:
     "Browse 6,846 real AI-generated images from Higgsfield AI. Find the exact prompt, model, and settings that produce the results you want.",
-  metadataBase: new URL("https://promptlens.vercel.app"),
+  metadataBase: new URL("https://promptlens-two.vercel.app"),
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
   openGraph: {
     siteName: "PromptLens",
     type: "website",
@@ -40,7 +45,14 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        <link rel="preconnect" href="https://d8j0ntlcm91z4.cloudfront.net" />
+        <link rel="preconnect" href="https://d2ol7oe51mr4n9.cloudfront.net" />
+      </head>
+      <body className="min-h-full flex flex-col bg-zinc-950 text-white">
+        {children}
+        <BackToTop />
+      </body>
     </html>
   );
 }

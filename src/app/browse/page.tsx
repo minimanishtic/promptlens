@@ -7,7 +7,7 @@ import type { FilterState, Generation, SortOption } from '@/types/database'
 import ImageCard from '@/components/ImageCard'
 import ImageCardSkeleton from '@/components/ImageCardSkeleton'
 import FilterSidebar from '@/components/FilterSidebar'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { SlidersHorizontal, X, FilterX } from 'lucide-react'
 
 const PAGE_SIZE = 24
 
@@ -90,14 +90,14 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'likes_count', label: 'Most Liked' },
 ]
 
+const GRID_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw'
+
 function BrowseContent() {
   const searchParams = useSearchParams()
 
   const initialFilters = (): FilterState => {
     const cat = searchParams.get('category')
-    return cat
-      ? { ...EMPTY_FILTERS, primary_category: [cat] }
-      : EMPTY_FILTERS
+    return cat ? { ...EMPTY_FILTERS, primary_category: [cat] } : EMPTY_FILTERS
   }
 
   const [images, setImages] = useState<Generation[]>([])
@@ -110,8 +110,8 @@ function BrowseContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pageRef = useRef(0)
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const mainRef = useRef<HTMLDivElement>(null)
 
-  // Load categories with counts
   useEffect(() => {
     supabase
       .from('generations')
@@ -173,18 +173,19 @@ function BrowseContent() {
     [],
   )
 
-  // Reset + fetch on filter/sort change
+  // Reset + fetch + scroll to top on filter/sort change
   useEffect(() => {
     pageRef.current = 0
     setHasMore(true)
     fetchImages(0, filters, sort, true)
+    // Smooth scroll to top of main content
+    mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [filters, sort, fetchImages])
 
-  // Infinite scroll via IntersectionObserver
+  // Infinite scroll
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
-
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
@@ -194,10 +195,24 @@ function BrowseContent() {
       },
       { rootMargin: '400px' },
     )
-
     observer.observe(sentinel)
     return () => observer.disconnect()
   }, [hasMore, loadingMore, loading, filters, sort, fetchImages])
+
+  // Close sidebar on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSidebarOpen(false)
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [sidebarOpen])
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters((prev) => {
@@ -230,23 +245,23 @@ function BrowseContent() {
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md">
-        <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center gap-4">
+        <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center gap-3">
           <a href="/" className="text-lg font-bold text-white shrink-0">
             Prompt<span className="text-violet-500">Lens</span>
           </a>
-          <span className="text-zinc-600">|</span>
-          <span className="text-sm text-zinc-400">Browse</span>
+          <span className="text-zinc-700 hidden sm:block">|</span>
+          <span className="text-sm text-zinc-400 hidden sm:block">Browse</span>
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2">
             {/* Mobile filter toggle */}
             <button
-              className="flex items-center gap-2 text-sm text-zinc-300 lg:hidden"
-              onClick={() => setSidebarOpen((o) => !o)}
+              className="flex items-center gap-2 text-sm text-zinc-300 lg:hidden bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-lg transition-colors"
+              onClick={() => setSidebarOpen(true)}
             >
               <SlidersHorizontal className="w-4 h-4" />
-              Filters
+              <span>Filters</span>
               {totalActive > 0 && (
-                <span className="bg-violet-600 text-white text-[10px] rounded-full px-1.5 py-0.5">
+                <span className="bg-violet-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {totalActive}
                 </span>
               )}
@@ -256,7 +271,7 @@ function BrowseContent() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortOption)}
-              className="text-sm bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-600"
+              className="text-sm bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-600"
             >
               {SORT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -269,10 +284,10 @@ function BrowseContent() {
       </header>
 
       <div className="max-w-screen-2xl mx-auto px-4 py-6 flex gap-6">
-        {/* Mobile sidebar overlay */}
+        {/* Mobile sidebar backdrop */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -280,14 +295,19 @@ function BrowseContent() {
         {/* Sidebar */}
         <div
           className={`
-            fixed top-14 left-0 bottom-0 z-50 w-64 bg-zinc-950 border-r border-zinc-800 p-4 overflow-y-auto transition-transform duration-200
+            fixed top-0 left-0 bottom-0 z-50 w-72 bg-zinc-950 border-r border-zinc-800 p-5 overflow-y-auto
+            transition-transform duration-300 ease-in-out
             lg:static lg:z-auto lg:w-56 lg:border-0 lg:p-0 lg:translate-x-0 lg:overflow-visible lg:shrink-0
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
           `}
         >
-          <div className="flex items-center justify-between mb-4 lg:hidden">
+          {/* Mobile sidebar header */}
+          <div className="flex items-center justify-between mb-5 lg:hidden">
             <span className="text-sm font-semibold text-white">Filters</span>
-            <button onClick={() => setSidebarOpen(false)}>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+            >
               <X className="w-4 h-4 text-zinc-400" />
             </button>
           </div>
@@ -301,7 +321,7 @@ function BrowseContent() {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 min-w-0">
+        <main ref={mainRef} className="flex-1 min-w-0">
           {/* Active filter chips */}
           {totalActive > 0 && (
             <div className="flex flex-wrap gap-2 mb-4">
@@ -322,41 +342,46 @@ function BrowseContent() {
 
           {/* Grid */}
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {Array.from({ length: 24 }).map((_, i) => (
                 <ImageCardSkeleton key={i} />
               ))}
             </div>
           ) : images.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-32 text-center">
-              <p className="text-zinc-400 text-lg mb-2">No images found</p>
-              <p className="text-zinc-600 text-sm">Try removing some filters</p>
+              <FilterX className="w-12 h-12 text-zinc-700 mb-4" />
+              <p className="text-zinc-300 text-lg font-medium mb-2">No images match these filters</p>
+              <p className="text-zinc-500 text-sm mb-6">Try removing some filters to see more results.</p>
               {totalActive > 0 && (
                 <button
                   onClick={handleClearAll}
-                  className="mt-4 text-sm text-violet-400 hover:text-violet-300 transition-colors"
+                  className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
                 >
+                  <X className="w-4 h-4" />
                   Clear all filters
                 </button>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-              {images.map((image) => (
-                <ImageCard key={image.id} image={image} />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+              {images.map((image, i) => (
+                <ImageCard
+                  key={image.id}
+                  image={image}
+                  priority={i < 6}
+                  sizes={GRID_SIZES}
+                />
               ))}
               {loadingMore &&
                 Array.from({ length: 6 }).map((_, i) => <ImageCardSkeleton key={`more-${i}`} />)}
             </div>
           )}
 
-          {/* Scroll sentinel */}
           <div ref={sentinelRef} className="h-1" />
 
-          {/* End of results */}
           {!hasMore && images.length > 0 && (
             <p className="text-center text-zinc-600 text-sm py-8">
-              {images.length.toLocaleString()} images loaded · no more results
+              {images.length.toLocaleString()} images loaded &middot; no more results
             </p>
           )}
         </main>

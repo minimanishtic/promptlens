@@ -210,6 +210,7 @@ export default async function ImageDetailPage({
                   width={gen.width ?? 1080}
                   height={gen.height ?? 1440}
                   className="w-full h-auto object-contain"
+                  sizes="(max-width: 768px) 100vw, 60vw"
                   unoptimized
                   priority
                 />
@@ -321,9 +322,13 @@ export default async function ImageDetailPage({
                 View all →
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-8 gap-3">
               {similarImages.map((img) => (
-                <ImageCard key={img.id} image={img} />
+                <ImageCard
+                  key={img.id}
+                  image={img}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 12vw"
+                />
               ))}
             </div>
           </section>

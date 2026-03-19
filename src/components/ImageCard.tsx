@@ -3,11 +3,14 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Eye } from 'lucide-react'
+import { useState } from 'react'
 import type { Generation } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 
 interface ImageCardProps {
   image: Generation
+  priority?: boolean
+  sizes?: string
 }
 
 const MODEL_COLORS: Record<string, string> = {
@@ -23,10 +26,15 @@ const MODEL_COLORS: Record<string, string> = {
   seedream: 'bg-indigo-600',
 }
 
-export default function ImageCard({ image }: ImageCardProps) {
+export default function ImageCard({
+  image,
+  priority = false,
+  sizes = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw',
+}: ImageCardProps) {
   const thumbnailUrl = image.output_image_url_min ?? image.output_image_url
   const modelLabel = image.model ? (MODEL_DISPLAY_NAMES[image.model] ?? image.model) : null
   const modelColor = image.model ? (MODEL_COLORS[image.model] ?? 'bg-zinc-600') : 'bg-zinc-600'
+  const [loaded, setLoaded] = useState(false)
 
   return (
     <Link href={`/image/${image.job_set_id}`} className="group block">
@@ -36,9 +44,12 @@ export default function ImageCard({ image }: ImageCardProps) {
             src={thumbnailUrl}
             alt={image.prompt ?? 'AI generated image'}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className={`object-cover transition-all duration-500 group-hover:scale-105 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+            sizes={sizes}
             unoptimized
+            priority={priority}
+            loading={priority ? 'eager' : 'lazy'}
+            onLoad={() => setLoaded(true)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-zinc-800">
@@ -46,10 +57,15 @@ export default function ImageCard({ image }: ImageCardProps) {
           </div>
         )}
 
+        {/* Shimmer while loading */}
+        {!loaded && thumbnailUrl && (
+          <div className="absolute inset-0 bg-zinc-800 animate-pulse" />
+        )}
+
         {/* Overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
-        {/* Bottom info — always visible */}
+        {/* Bottom info */}
         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
           <div className="flex items-center justify-between gap-1">
             {modelLabel && (

@@ -9,6 +9,7 @@ import ImageCard from '@/components/ImageCard'
 import ImageCardSkeleton from '@/components/ImageCardSkeleton'
 
 const PAGE_SIZE = 24
+const GRID_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw'
 
 function SearchContent() {
   const searchParams = useSearchParams()
@@ -24,7 +25,24 @@ function SearchContent() {
   const [totalHint, setTotalHint] = useState<number | null>(null)
   const pageRef = useRef(0)
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
+
+  // "/" shortcut focuses search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (
+        e.key === '/' &&
+        document.activeElement?.tagName !== 'INPUT' &&
+        document.activeElement?.tagName !== 'TEXTAREA'
+      ) {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   const fetchResults = useCallback(async (q: string, page: number, replace: boolean) => {
     if (!q.trim()) {
@@ -136,11 +154,12 @@ function SearchContent() {
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-violet-400 transition-colors" />
             <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Search prompts…"
-              autoFocus
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Search prompts..."
+          autoFocus
               className="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-500 text-white placeholder-zinc-500 rounded-xl pl-12 pr-28 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-violet-500/20"
             />
             <button
@@ -173,7 +192,7 @@ function SearchContent() {
 
         {/* Loading skeleton */}
         {loading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
             {Array.from({ length: 24 }).map((_, i) => (
               <ImageCardSkeleton key={i} />
             ))}
@@ -211,8 +230,8 @@ function SearchContent() {
         {!loading && images.length > 0 && (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {images.map((image) => (
-                <ImageCard key={image.id} image={image} />
+              {images.map((image, i) => (
+                <ImageCard key={image.id} image={image} priority={i < 6} sizes={GRID_SIZES} />
               ))}
               {loadingMore &&
                 Array.from({ length: 6 }).map((_, i) => (

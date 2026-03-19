@@ -1,12 +1,29 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 
 export default function HeroSearch() {
   const [query, setQuery] = useState('')
   const router = useRouter()
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // "/" keyboard shortcut focuses the search bar
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (
+        e.key === '/' &&
+        document.activeElement?.tagName !== 'INPUT' &&
+        document.activeElement?.tagName !== 'TEXTAREA'
+      ) {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,8 +34,9 @@ export default function HeroSearch() {
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
       <div className="relative group">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-violet-400 transition-colors" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-violet-400 transition-colors pointer-events-none" />
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -34,9 +52,12 @@ export default function HeroSearch() {
         </button>
       </div>
       <p className="text-center text-xs text-zinc-600 mt-3">
-        Press <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono text-[10px]">Enter</kbd> to search{' '}
-        &middot; or{' '}
-        <a href="/browse" className="text-violet-400 hover:text-violet-300 transition-colors">browse all images &rarr;</a>
+        Press{' '}
+        <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono text-[10px]">/</kbd>
+        {' '}to focus search &middot; or{' '}
+        <a href="/browse" className="text-violet-400 hover:text-violet-300 transition-colors">
+          browse all images
+        </a>
       </p>
     </form>
   )
