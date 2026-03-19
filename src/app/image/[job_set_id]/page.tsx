@@ -9,6 +9,7 @@ import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import CopyPromptButton from '@/components/CopyPromptButton'
 import SavePromptButton from '@/components/SavePromptButton'
 import { NavAuthButton } from '@/components/UserMenu'
+import MobileNav from '@/components/MobileNav'
 import ImageCard from '@/components/ImageCard'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -197,16 +198,10 @@ export default async function ImageDetailPage({
             <Link href="/builder" className="hover:text-white transition-colors">Builder</Link>
             <Link href="/library" className="hover:text-white transition-colors">Library</Link>
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <NavAuthButton />
+            <MobileNav />
           </div>
-          <Link
-            href="/browse"
-            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors sm:hidden"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Browse
-          </Link>
         </div>
       </header>
 

@@ -3,6 +3,7 @@ import { FileText } from 'lucide-react'
 import { fetchTemplates, CATEGORIES } from '@/lib/templates'
 import TemplatesClient from '@/components/TemplatesClient'
 import { NavAuthButton } from '@/components/UserMenu'
+import MobileNav from '@/components/MobileNav'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,8 +27,9 @@ export default async function TemplatesPage() {
             <Link href="/builder"    className="hover:text-white transition-colors">Builder</Link>
             <Link href="/library"    className="hover:text-white transition-colors">Library</Link>
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <NavAuthButton />
+            <MobileNav />
           </div>
         </div>
       </header>

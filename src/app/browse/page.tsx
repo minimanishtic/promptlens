@@ -8,6 +8,7 @@ import ImageCard from '@/components/ImageCard'
 import ImageCardSkeleton from '@/components/ImageCardSkeleton'
 import FilterSidebar from '@/components/FilterSidebar'
 import { NavAuthButton } from '@/components/UserMenu'
+import MobileNav from '@/components/MobileNav'
 import { SlidersHorizontal, X, FilterX } from 'lucide-react'
 
 const PAGE_SIZE = 24
@@ -262,9 +263,10 @@ function BrowseContent() {
 
           <div className="ml-auto flex items-center gap-2">
             <NavAuthButton />
+            <MobileNav />
             {/* Mobile filter toggle */}
             <button
-              className="flex items-center gap-2 text-sm text-zinc-300 lg:hidden bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-lg transition-colors"
+              className="flex items-center gap-2 text-sm text-zinc-300 lg:hidden bg-zinc-800 hover:bg-zinc-700 px-3 py-2.5 sm:py-1.5 rounded-lg transition-colors"
               onClick={() => setSidebarOpen(true)}
             >
               <SlidersHorizontal className="w-4 h-4" />
@@ -280,7 +282,7 @@ function BrowseContent() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortOption)}
-              className="text-sm bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-600"
+              className="text-sm bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-lg px-3 py-2.5 sm:py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-600"
             >
               {SORT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>

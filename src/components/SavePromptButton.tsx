@@ -156,7 +156,7 @@ export default function SavePromptButton({ jobSetId }: Props) {
       </button>
 
       {showPanel && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl shadow-black/50 p-4 z-20 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-1rem)] max-h-[80vh] overflow-y-auto bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl shadow-black/50 p-4 z-20 animate-in fade-in zoom-in-95 duration-150">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-white">Save to library</p>
             <button onClick={() => setShowPanel(false)} className="text-zinc-500 hover:text-white transition-colors">

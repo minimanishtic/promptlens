@@ -9,6 +9,7 @@ import type { SemanticResult } from '@/app/api/search/route'
 import ImageCard from '@/components/ImageCard'
 import SemanticImageCard from '@/components/SemanticImageCard'
 import { NavAuthButton } from '@/components/UserMenu'
+import MobileNav from '@/components/MobileNav'
 import ImageCardSkeleton from '@/components/ImageCardSkeleton'
 
 const PAGE_SIZE = 24
@@ -207,16 +208,10 @@ function SearchContent() {
             <a href="/builder" className="hover:text-white transition-colors">Builder</a>
             <a href="/library" className="hover:text-white transition-colors">Library</a>
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <NavAuthButton />
+            <MobileNav />
           </div>
-          <a
-            href="/browse"
-            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors sm:hidden"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Browse
-          </a>
         </div>
       </header>
 
@@ -232,16 +227,23 @@ function SearchContent() {
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Search prompts... e.g. woman in golden hour with bokeh"
               autoFocus
-              className="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-500 text-white placeholder-zinc-500 rounded-xl pl-12 pr-28 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-violet-500/20"
+              className="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-500 text-white placeholder-zinc-500 rounded-xl pl-12 pr-4 sm:pr-28 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-violet-500/20"
             />
             <button
               type="submit"
               disabled={!inputValue.trim()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              className="hidden sm:block absolute right-2 top-1/2 -translate-y-1/2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               Search
             </button>
           </div>
+          <button
+            type="submit"
+            disabled={!inputValue.trim()}
+            className="sm:hidden w-full py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+          >
+            Search
+          </button>
         </form>
 
         {/* Result meta row */}

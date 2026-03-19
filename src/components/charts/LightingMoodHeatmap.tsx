@@ -32,6 +32,8 @@ export default function LightingMoodHeatmap({ data }: Props) {
   }
 
   return (
+    <>
+    <p className="text-xs text-zinc-500 mb-2 sm:hidden text-center">← Swipe to view full table →</p>
     <div className="overflow-x-auto">
       <table className="w-full text-xs border-collapse min-w-[640px]">
         <thead>
@@ -76,5 +78,6 @@ export default function LightingMoodHeatmap({ data }: Props) {
         <span className="text-xs text-zinc-600">More</span>
       </div>
     </div>
+    </>
   )
 }

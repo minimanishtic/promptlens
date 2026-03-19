@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { BookMarked } from 'lucide-react'
 import LibraryClient from '@/components/LibraryClient'
 import { NavAuthButton } from '@/components/UserMenu'
+import MobileNav from '@/components/MobileNav'
 
 export default function LibraryPage() {
   return (
@@ -21,8 +22,9 @@ export default function LibraryPage() {
             <Link href="/builder"   className="hover:text-white transition-colors">Builder</Link>
             <Link href="/library"   className="text-white font-medium">Library</Link>
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <NavAuthButton />
+            <MobileNav />
           </div>
         </div>
       </header>

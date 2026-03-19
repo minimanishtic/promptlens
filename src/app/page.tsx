@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Eye, ArrowRight, Layers } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { NavAuthButton } from '@/components/UserMenu'
+import MobileNav from '@/components/MobileNav'
 import type { Generation } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import HeroSearch from '@/components/HeroSearch'
@@ -202,6 +203,7 @@ export default async function HomePage() {
               Explore images
             </Link>
             <NavAuthButton />
+            <MobileNav />
           </nav>
         </div>
       </header>
@@ -210,7 +212,7 @@ export default async function HomePage() {
       <section className="relative overflow-hidden">
         {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-violet-600/10 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[400px] bg-violet-600/10 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-screen-xl mx-auto px-4 pt-24 pb-20 flex flex-col items-center text-center">
@@ -220,7 +222,7 @@ export default async function HomePage() {
             6,846 real community images · indexed &amp; classified
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-4 leading-[1.1]">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-4 leading-[1.1]">
             Prompt<span className="text-violet-500">Lens</span>
           </h1>
           <p className="text-xl sm:text-2xl text-zinc-300 font-medium mb-4">
@@ -298,7 +300,7 @@ export default async function HomePage() {
             </a>
           </div>
           <span>Powered by Higgsfield AI community data</span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center flex-wrap gap-x-4 gap-y-2 justify-center">
             <Link href="/browse" className="hover:text-zinc-300 transition-colors">Browse</Link>
             <Link href="/glossary" className="hover:text-zinc-300 transition-colors">Glossary</Link>
             <Link href="/analytics" className="hover:text-zinc-300 transition-colors">Analytics</Link>

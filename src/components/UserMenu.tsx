@@ -87,17 +87,18 @@ export default function UserMenu() {
   )
 }
 
-// A simpler version used inline in non-root navs — just the sign-in button or avatar
+// A simpler version used inline in non-root navs — just the sign-in button or avatar.
+// Hidden on mobile (sm:hidden) because auth is handled inside the MobileNav drawer.
 export function NavAuthButton() {
   const { user, loading, openAuth } = useAuth()
 
-  if (loading) return <div className="w-8 h-8 rounded-full bg-zinc-800 animate-pulse" />
+  if (loading) return <div className="hidden sm:block w-8 h-8 rounded-full bg-zinc-800 animate-pulse" />
 
   if (!user) {
     return (
       <button
         onClick={() => openAuth('login')}
-        className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 transition-colors"
+        className="hidden sm:flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 transition-colors"
       >
         <User className="w-4 h-4" />
         Sign in
@@ -105,5 +106,9 @@ export function NavAuthButton() {
     )
   }
 
-  return <UserMenu />
+  return (
+    <div className="hidden sm:block">
+      <UserMenu />
+    </div>
+  )
 }

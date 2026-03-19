@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { BarChart2, TrendingUp, Image as ImageIcon, Zap, Tag } from 'lucide-react'
 import { fetchAllAnalytics } from '@/lib/analytics'
 import { NavAuthButton } from '@/components/UserMenu'
+import MobileNav from '@/components/MobileNav'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import ModelByCategoryChart from '@/components/charts/ModelByCategoryChart'
 import ModelEngagementChart from '@/components/charts/ModelEngagementChart'
@@ -85,8 +86,9 @@ export default async function AnalyticsPage() {
             <Link href="/builder" className="hover:text-white transition-colors">Builder</Link>
             <Link href="/library" className="hover:text-white transition-colors">Library</Link>
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <NavAuthButton />
+            <MobileNav />
           </div>
         </div>
       </header>
@@ -113,7 +115,7 @@ export default async function AnalyticsPage() {
       <div className="max-w-screen-xl mx-auto px-4 py-10 space-y-10">
 
         {/* Summary stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1">
           <StatCard
             icon={ImageIcon}
             label="Total Images"
@@ -150,14 +152,14 @@ export default async function AnalyticsPage() {
           <ChartCard
             title="Model Distribution by Category"
             subtitle="Which models are used most in each image category"
-            height="h-80"
+            height="h-64 sm:h-80"
           >
             <ModelByCategoryChart data={data.modelByCategory} />
           </ChartCard>
           <ChartCard
             title="Avg Engagement by Model"
             subtitle="Average views per generation, sorted by performance"
-            height="h-80"
+            height="h-64 sm:h-80"
           >
             <ModelEngagementChart data={data.modelEngagement} />
           </ChartCard>
@@ -168,14 +170,14 @@ export default async function AnalyticsPage() {
           <ChartCard
             title="Optimal Prompt Length"
             subtitle="Average views by prompt character count range. Bar opacity = image volume."
-            height="h-64"
+            height="h-52 sm:h-64"
           >
             <PromptLengthChart data={data.promptLengthBuckets} />
           </ChartCard>
           <ChartCard
             title="Visual Style Distribution"
             subtitle="Breakdown of all images by classified visual style"
-            height="h-64"
+            height="h-52 sm:h-64"
           >
             <VisualStyleDonut data={data.visualStyleDist} />
           </ChartCard>
@@ -185,7 +187,7 @@ export default async function AnalyticsPage() {
         <ChartCard
           title="Reference Image Impact on Engagement"
           subtitle="Average views for generations with vs without reference images, by category"
-          height="h-72"
+          height="h-56 sm:h-72"
         >
           <ReferenceImpactChart data={data.referenceImpact} />
         </ChartCard>

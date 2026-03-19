@@ -36,13 +36,16 @@ function displayValue(key: StepName, value: string) {
 
 function ProgressBar({ currentStep, total }: { currentStep: number; total: number }) {
   return (
-    <div className="flex items-center gap-1 mb-8">
+      <div className="flex items-center gap-1 mb-8">
       {STEPS.map((step, i) => (
         <div key={step.key} className="flex items-center gap-1 flex-1">
           <div className="flex-1">
             <div className="flex items-center gap-1.5 mb-1">
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all duration-300
-                ${i < currentStep ? 'bg-violet-600 text-white' : i === currentStep ? 'bg-violet-600 text-white ring-2 ring-violet-400/40' : 'bg-zinc-800 text-zinc-500'}`}>
+              <div
+                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all duration-300
+                ${i < currentStep ? 'bg-violet-600 text-white' : i === currentStep ? 'bg-violet-600 text-white ring-2 ring-violet-400/40' : 'bg-zinc-800 text-zinc-500'}`}
+                aria-label={`Step ${i + 1}: ${step.title}${i < currentStep ? ' (completed)' : i === currentStep ? ' (current)' : ''}`}
+              >
                 {i < currentStep ? '✓' : i + 1}
               </div>
               <span className={`text-[11px] font-medium transition-colors hidden sm:block ${i === currentStep ? 'text-violet-300' : i < currentStep ? 'text-zinc-400' : 'text-zinc-600'}`}>
