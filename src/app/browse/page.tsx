@@ -255,6 +255,7 @@ function BrowseContent() {
             <a href="/glossary" className="hover:text-white transition-colors">Glossary</a>
             <a href="/analytics" className="hover:text-white transition-colors">Analytics</a>
             <a href="/templates" className="hover:text-white transition-colors">Templates</a>
+            <a href="/builder" className="hover:text-white transition-colors">Builder</a>
           </nav>
 
           <div className="ml-auto flex items-center gap-2">

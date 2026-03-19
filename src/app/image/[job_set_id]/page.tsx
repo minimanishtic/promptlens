@@ -192,6 +192,7 @@ export default async function ImageDetailPage({
             <Link href="/glossary" className="hover:text-white transition-colors">Glossary</Link>
             <Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link>
             <Link href="/templates" className="hover:text-white transition-colors">Templates</Link>
+            <Link href="/builder" className="hover:text-white transition-colors">Builder</Link>
           </nav>
           <Link
             href="/browse"

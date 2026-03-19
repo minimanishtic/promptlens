@@ -81,6 +81,7 @@ export default async function AnalyticsPage() {
             <Link href="/glossary" className="hover:text-white transition-colors">Glossary</Link>
             <Link href="/analytics" className="text-white font-medium">Analytics</Link>
             <Link href="/templates" className="hover:text-white transition-colors">Templates</Link>
+            <Link href="/builder" className="hover:text-white transition-colors">Builder</Link>
           </nav>
         </div>
       </header>
@@ -215,6 +216,7 @@ export default async function AnalyticsPage() {
             <Link href="/glossary" className="hover:text-zinc-300 transition-colors">Glossary</Link>
             <Link href="/analytics" className="hover:text-zinc-300 transition-colors">Analytics</Link>
             <Link href="/templates" className="hover:text-zinc-300 transition-colors">Templates</Link>
+            <Link href="/builder" className="hover:text-zinc-300 transition-colors">Builder</Link>
           </div>
         </div>
       </footer>
