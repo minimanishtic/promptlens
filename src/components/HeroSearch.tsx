@@ -34,19 +34,19 @@ export default function HeroSearch() {
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
       <div className="relative group">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-violet-400 transition-colors pointer-events-none" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-sky-400 transition-colors pointer-events-none" />
         <input
           ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Try: woman in golden hour with bokeh, dark moody product shot..."
-          className="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-500 text-white placeholder-zinc-500 rounded-xl pl-12 pr-32 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-violet-500/20"
+          className="w-full bg-zinc-900 border border-zinc-700/80 focus:border-sky-500 text-white placeholder-zinc-500 rounded-xl pl-12 pr-32 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-sky-500/15"
         />
         <button
           type="submit"
           disabled={!query.trim()}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-950 text-sm font-semibold px-5 py-2 rounded-lg transition-colors"
         >
           Search
         </button>
@@ -55,7 +55,7 @@ export default function HeroSearch() {
         AI-powered semantic search &middot; Press{' '}
         <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono text-[10px]">/</kbd>
         {' '}to focus &middot; or{' '}
-        <a href="/browse" className="text-violet-400 hover:text-violet-300 transition-colors">
+        <a href="/browse" className="text-sky-400 hover:text-sky-300 transition-colors">
           browse all images
         </a>
       </p>

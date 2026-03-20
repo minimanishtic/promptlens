@@ -24,7 +24,7 @@ function CategorySection({ category, templates }: { category: string; templates:
         className="w-full flex items-center justify-between py-3 group"
       >
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-white group-hover:text-violet-300 transition-colors text-left">
+          <h2 className="text-lg font-bold text-white group-hover:text-sky-300 transition-colors text-left">
             {category}
           </h2>
           <span className="text-xs text-zinc-600 tabular-nums">{templates.length} templates</span>
@@ -73,7 +73,7 @@ export default function TemplatesClient({ allData, allModels }: Props) {
           onClick={() => setSelectedModel('')}
           className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
             !selectedModel
-              ? 'bg-violet-600 text-white border-violet-600'
+              ? 'bg-sky-500 text-white border-sky-500'
               : 'bg-transparent text-zinc-400 border-zinc-700 hover:border-zinc-500 hover:text-white'
           }`}
         >
@@ -85,7 +85,7 @@ export default function TemplatesClient({ allData, allModels }: Props) {
             onClick={() => setSelectedModel(model === selectedModel ? '' : model)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
               selectedModel === model
-                ? 'bg-violet-600 text-white border-violet-600'
+                ? 'bg-sky-500 text-white border-sky-500'
                 : 'bg-transparent text-zinc-400 border-zinc-700 hover:border-zinc-500 hover:text-white'
             }`}
           >
@@ -104,7 +104,7 @@ export default function TemplatesClient({ allData, allModels }: Props) {
           <p className="text-zinc-600 text-sm">Try selecting a different model filter above.</p>
           <button
             onClick={() => setSelectedModel('')}
-            className="mt-2 text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors"
+            className="mt-2 text-xs text-sky-400 hover:text-sky-300 underline underline-offset-2 transition-colors"
           >
             Clear filter
           </button>

@@ -108,7 +108,7 @@ export default function GlossaryImageRow({ column, value }: GlossaryImageRowProp
           {/* Browse all link */}
           <Link
             href={`/browse?${column}=${encodeURIComponent(value)}`}
-            className="shrink-0 w-32 h-44 rounded-lg border border-zinc-700 hover:border-violet-600 flex flex-col items-center justify-center gap-2 text-zinc-500 hover:text-violet-400 transition-colors"
+            className="shrink-0 w-32 h-44 rounded-lg border border-zinc-700 hover:border-sky-500 flex flex-col items-center justify-center gap-2 text-zinc-500 hover:text-sky-400 transition-colors"
           >
             <span className="text-2xl">+</span>
             <span className="text-[10px] text-center leading-tight px-2">View all in Browse</span>

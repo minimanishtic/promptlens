@@ -46,7 +46,7 @@ export default function GlossarySection({ section, filterQuery, defaultOpen = tr
         className="w-full flex items-center justify-between px-6 py-5 bg-zinc-900/60 hover:bg-zinc-900 transition-colors text-left"
       >
         <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-violet-400 uppercase tracking-widest">
+          <span className="text-xs font-bold text-sky-400 uppercase tracking-widest">
             {section.category}
           </span>
           <span className="text-xs text-zinc-600">{section.options.length} settings</span>

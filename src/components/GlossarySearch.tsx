@@ -96,7 +96,7 @@ export default function GlossarySearch() {
           value={filterQuery}
           onChange={(e) => setFilterQuery(e.target.value)}
           placeholder="Filter settings... e.g. golden hour, bokeh, cinematic"
-          className="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-500 text-white placeholder-zinc-500 rounded-lg pl-9 pr-9 py-2.5 text-sm outline-none transition-colors focus:ring-1 focus:ring-violet-500/30"
+          className="w-full bg-zinc-900 border border-zinc-700 focus:border-sky-400 text-white placeholder-zinc-500 rounded-lg pl-9 pr-9 py-2.5 text-sm outline-none transition-colors focus:ring-1 focus:ring-sky-500/20"
         />
         {filterQuery && (
           <button
@@ -112,7 +112,7 @@ export default function GlossarySearch() {
       {filterQuery.trim() && (
         <p className="text-xs text-zinc-500">
           {matchCount} setting{matchCount !== 1 ? 's' : ''} match{matchCount === 1 ? 'es' : ''}{' '}
-          <span className="text-violet-400">&ldquo;{filterQuery}&rdquo;</span>
+          <span className="text-sky-400">&ldquo;{filterQuery}&rdquo;</span>
         </p>
       )}
 
@@ -134,7 +134,7 @@ export default function GlossarySearch() {
           <p className="text-zinc-400 text-sm mb-1">No settings match &ldquo;{filterQuery}&rdquo;</p>
           <button
             onClick={() => setFilterQuery('')}
-            className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+            className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
           >
             Clear filter
           </button>

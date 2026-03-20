@@ -27,7 +27,7 @@ export default function UserMenu() {
     return (
       <button
         onClick={() => openAuth('login')}
-        className="text-sm px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium transition-colors"
+        className="text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-medium transition-colors border border-zinc-700"
       >
         Sign in
       </button>
@@ -44,18 +44,18 @@ export default function UserMenu() {
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-sm font-bold text-white group-hover:bg-violet-500 transition-colors">
+        <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold text-white group-hover:bg-zinc-600 transition-colors border border-zinc-600">
           {initials}
         </div>
         <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-52 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl shadow-black/40 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 top-full mt-2 w-52 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl shadow-black/60 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
           {/* User info */}
           <div className="px-4 py-3 border-b border-zinc-800">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+              <div className="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0 border border-zinc-600">
                 {initials}
               </div>
               <p className="text-xs text-zinc-300 truncate">{user.email}</p>
@@ -69,7 +69,7 @@ export default function UserMenu() {
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
             >
-              <BookMarked className="w-4 h-4 text-violet-400" />
+              <BookMarked className="w-4 h-4 text-sky-400" />
               My Library
             </Link>
             <div className="border-t border-zinc-800 my-1" />
@@ -98,7 +98,7 @@ export function NavAuthButton() {
     return (
       <button
         onClick={() => openAuth('login')}
-        className="hidden sm:flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 transition-colors"
+        className="hidden sm:flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60 transition-colors"
       >
         <User className="w-4 h-4" />
         Sign in

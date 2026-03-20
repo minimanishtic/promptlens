@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Eye, ArrowRight, Layers } from 'lucide-react'
+import { Eye, ArrowRight, Layers } from 'lucide-react' // ArrowRight used in section headers
 import { createClient } from '@supabase/supabase-js'
 import { NavAuthButton } from '@/components/UserMenu'
 import MobileNav from '@/components/MobileNav'
@@ -146,30 +146,27 @@ function CategoryCard({
   return (
     <Link
       href={`/browse?category=${encodeURIComponent(name)}`}
-      className="group relative overflow-hidden rounded-2xl bg-zinc-900 aspect-[16/9] sm:aspect-[4/3] block"
+      className="group relative overflow-hidden rounded-xl bg-zinc-900 aspect-[3/4] block"
     >
-      {thumbnail && (
+      {thumbnail ? (
         <Image
           src={thumbnail}
           alt={name}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105 brightness-50 group-hover:brightness-60"
+          className="object-cover transition-transform duration-500 group-hover:scale-105 brightness-[0.45] group-hover:brightness-[0.55]"
           unoptimized
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 640px) 50vw, 25vw"
         />
+      ) : (
+        <div className="absolute inset-0 bg-zinc-800" />
       )}
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-5">
-        <p className="text-white font-semibold text-sm sm:text-base leading-tight">{name}</p>
-        <p className="text-zinc-400 text-xs mt-1">{count.toLocaleString()} images</p>
-      </div>
-
-      {/* Hover arrow */}
-      <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-1 group-hover:translate-x-0">
-        <ArrowRight className="w-3.5 h-3.5 text-white" />
+      <div className="absolute inset-0 flex flex-col justify-end p-3 sm:p-4">
+        <p className="text-white font-semibold text-sm leading-tight">{name}</p>
+        <p className="text-zinc-400 text-xs mt-0.5">{count.toLocaleString()} images</p>
       </div>
     </Link>
   )
@@ -186,32 +183,26 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
       {/* Nav */}
-      <header className="border-b border-zinc-800/60">
+      <header className="border-b border-zinc-800/50 sticky top-0 z-30 bg-zinc-950/90 backdrop-blur-md">
         <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="text-lg font-bold">
-            Prompt<span className="text-violet-500">Lens</span>
+          <span className="text-lg font-bold tracking-tight">
+            Prompt<span className="text-sky-400">Lens</span>
           </span>
-          <nav className="flex items-center gap-5">
-            <Link href="/browse" className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block">
-              Browse
-            </Link>
-            <Link href="/glossary" className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block">
-              Glossary
-            </Link>
-            <Link href="/analytics" className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block">
-              Analytics
-            </Link>
-            <Link href="/templates" className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block">
-              Templates
-            </Link>
-            <Link href="/builder" className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block">
-              Builder
-            </Link>
+          <nav className="flex items-center gap-1">
+            {['Browse', 'Glossary', 'Analytics', 'Templates', 'Builder'].map((label) => (
+              <Link
+                key={label}
+                href={`/${label.toLowerCase()}`}
+                className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block px-3 py-1.5 rounded-md hover:bg-zinc-800/60"
+              >
+                {label}
+              </Link>
+            ))}
             <Link
               href="/browse"
-              className="text-sm bg-violet-600 hover:bg-violet-500 text-white px-4 py-1.5 rounded-lg transition-colors hidden sm:block"
+              className="text-sm bg-white text-zinc-950 hover:bg-zinc-100 font-semibold px-4 py-1.5 rounded-lg transition-colors hidden sm:block ml-2"
             >
-              Explore images
+              Explore
             </Link>
             <NavAuthButton />
             <MobileNav />
@@ -221,25 +212,23 @@ export default async function HomePage() {
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden">
-        {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[400px] bg-violet-600/10 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[600px] h-[300px] bg-sky-500/8 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative max-w-screen-xl mx-auto px-4 pt-16 pb-8 sm:pt-24 sm:pb-12 flex flex-col items-center text-center">
-          {/* Badge */}
-          <div className="flex items-center gap-2 bg-violet-600/10 border border-violet-600/20 text-violet-300 text-xs px-3 py-1.5 rounded-full mb-6">
-            <Layers className="w-3.5 h-3.5" />
+        <div className="relative max-w-screen-xl mx-auto px-4 pt-12 pb-8 sm:pt-16 sm:pb-10 flex flex-col items-center text-center">
+          <div className="flex items-center gap-2 bg-zinc-800/80 border border-zinc-700/60 text-zinc-300 text-xs px-3 py-1.5 rounded-full mb-5">
+            <Layers className="w-3.5 h-3.5 text-sky-400" />
             6,846 real community images · indexed &amp; classified
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-4 leading-[1.1]">
-            Prompt<span className="text-violet-500">Lens</span>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-3 leading-[1.08]">
+            Prompt<span className="text-sky-400">Lens</span>
           </h1>
-          <p className="text-xl sm:text-2xl text-zinc-300 font-medium mb-4">
+          <p className="text-lg sm:text-xl text-zinc-400 font-medium mb-3">
             Stop guessing. Start directing.
           </p>
-          <p className="text-zinc-500 text-base sm:text-lg max-w-xl mb-8 leading-relaxed">
+          <p className="text-zinc-500 text-sm sm:text-base max-w-lg mb-7 leading-relaxed">
             Browse 6,800+ AI-generated images. Find the exact prompt, model, and settings that produce the results you want.
           </p>
 
@@ -248,15 +237,15 @@ export default async function HomePage() {
       </section>
 
       {/* ── Categories ── */}
-      <section className="max-w-screen-xl mx-auto px-4 pt-2 pb-12 sm:pt-4 sm:pb-16">
+      <section className="max-w-screen-xl mx-auto px-4 pb-12 sm:pb-16">
         <div className="flex items-center justify-between gap-4 mb-5">
-          <h2 className="text-xl font-semibold text-white">Browse by Category</h2>
-          <Link href="/browse" className="text-sm text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 shrink-0">
+          <h2 className="text-lg font-semibold text-white tracking-tight">Browse by Category</h2>
+          <Link href="/browse" className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0">
             View all <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
-        {/* 1 col mobile → 2 col tablet → 4 col desktop, taller cards fill the space */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Portrait tiles — same style as trending cards, 4 cols on desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
           {categories.slice(0, 8).map((cat) => (
             <CategoryCard
               key={cat.name}
@@ -269,23 +258,22 @@ export default async function HomePage() {
       </section>
 
       {/* ── Trending ── */}
-      <section className="py-16 border-t border-zinc-800/50">
+      <section className="py-12 border-t border-zinc-800/50">
         <div className="max-w-screen-xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-xl font-semibold text-white">Trending Generations</h2>
-              <p className="text-xs text-zinc-500 mt-1">Highest viewed images from the community</p>
+              <h2 className="text-lg font-semibold text-white tracking-tight">Trending Generations</h2>
+              <p className="text-xs text-zinc-500 mt-0.5">Highest viewed from the community</p>
             </div>
             <Link
               href="/browse"
-              className="text-sm text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 shrink-0"
+              className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0"
             >
               View all <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
-        {/* Horizontal scroll */}
         <div className="max-w-screen-xl mx-auto px-4">
           <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-thin snap-x snap-mandatory">
             {trendingImages.map((image) => (
@@ -298,20 +286,20 @@ export default async function HomePage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="mt-auto border-t border-zinc-800/60 py-8">
-        <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500">
+      <footer className="mt-auto border-t border-zinc-800/50 py-8">
+        <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-600">
           <div className="flex items-center gap-1.5">
             <span>Built by</span>
             <a
               href="https://konvert.media"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-300 hover:text-white transition-colors font-medium"
+              className="text-zinc-400 hover:text-white transition-colors font-medium"
             >
               Konvert Media
             </a>
           </div>
-          <span>Powered by Higgsfield AI community data</span>
+          <span className="text-zinc-700">Powered by Higgsfield AI community data</span>
           <div className="flex items-center flex-wrap gap-x-4 gap-y-2 justify-center">
             <Link href="/browse" className="hover:text-zinc-300 transition-colors">Browse</Link>
             <Link href="/glossary" className="hover:text-zinc-300 transition-colors">Glossary</Link>

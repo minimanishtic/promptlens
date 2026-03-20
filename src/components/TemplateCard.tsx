@@ -72,7 +72,7 @@ export default function TemplateCard({ template, rank }: Props) {
         {/* Meta row */}
         <div className="flex items-center gap-2 flex-wrap">
           {template.model && (
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-600/15 text-violet-400 border border-violet-600/20">
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/20">
               {MODEL_DISPLAY_NAMES[template.model] ?? template.model}
             </span>
           )}
@@ -101,7 +101,7 @@ export default function TemplateCard({ template, rank }: Props) {
           {isTruncated && (
             <button
               onClick={() => setExpanded((e) => !e)}
-              className="mt-1.5 flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors"
+              className="mt-1.5 flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition-colors"
             >
               {expanded ? (
                 <>
@@ -125,7 +125,7 @@ export default function TemplateCard({ template, rank }: Props) {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
               copied
                 ? 'bg-green-600/20 text-green-400 border border-green-600/30'
-                : 'bg-violet-600 hover:bg-violet-500 text-white'
+                : 'bg-sky-500 hover:bg-sky-400 text-white'
             }`}
           >
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}

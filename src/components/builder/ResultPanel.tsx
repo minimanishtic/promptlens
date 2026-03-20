@@ -72,7 +72,7 @@ function PromptResultCard({ gen, rank }: { gen: Generation; rank: number }) {
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-2">
           {gen.model && (
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-600/15 text-violet-400 border border-violet-600/20">
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/20">
               {MODEL_DISPLAY_NAMES[gen.model] ?? gen.model}
             </span>
           )}
@@ -89,7 +89,7 @@ function PromptResultCard({ gen, rank }: { gen: Generation; rank: number }) {
         <div className="flex-1">
           <p className="text-sm text-zinc-300 leading-relaxed font-mono whitespace-pre-wrap break-words">{displayPrompt}</p>
           {isTruncated && (
-            <button onClick={() => setExpanded(e => !e)} className="mt-1.5 flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors">
+            <button onClick={() => setExpanded(e => !e)} className="mt-1.5 flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition-colors">
               {expanded ? <><ChevronUp className="w-3.5 h-3.5" />Show less</> : <><ChevronDown className="w-3.5 h-3.5" />Show full ({prompt.length.toLocaleString()} chars)</>}
             </button>
           )}
@@ -97,7 +97,7 @@ function PromptResultCard({ gen, rank }: { gen: Generation; rank: number }) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-1 border-t border-zinc-800">
-          <button onClick={handleCopy} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${copied ? 'bg-green-600/20 text-green-400 border border-green-600/30' : 'bg-violet-600 hover:bg-violet-500 text-white'}`}>
+          <button onClick={handleCopy} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${copied ? 'bg-green-600/20 text-green-400 border border-green-600/30' : 'bg-sky-500 hover:bg-sky-400 text-white'}`}>
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
             {copied ? 'Copied!' : 'Copy Prompt'}
           </button>
@@ -161,7 +161,7 @@ export default function ResultPanel({ prompts, relaxedLevel, selections, onReset
         {/* Pills */}
         <div className="flex flex-wrap gap-2">
           {pills.map((pill, i) => (
-            <span key={i} className="text-sm px-3 py-1 rounded-full bg-violet-600/15 text-violet-300 border border-violet-600/25 font-medium">
+            <span key={i} className="text-sm px-3 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/25 font-medium">
               {pill}
             </span>
           ))}
@@ -189,7 +189,7 @@ export default function ResultPanel({ prompts, relaxedLevel, selections, onReset
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-center bg-zinc-900 border border-zinc-800 rounded-xl">
             <p className="text-zinc-400">No prompts found for this combination.</p>
             <p className="text-zinc-600 text-sm">Try a different set of options, or browse all images.</p>
-            <Link href="/browse" className="mt-2 text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2">
+            <Link href="/browse" className="mt-2 text-xs text-sky-400 hover:text-sky-300 underline underline-offset-2">
               Browse all images
             </Link>
           </div>

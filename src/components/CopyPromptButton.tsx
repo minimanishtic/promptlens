@@ -30,7 +30,7 @@ export default function CopyPromptButton({ prompt }: { prompt: string }) {
       className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shrink-0
         ${copied
           ? 'bg-green-600/20 text-green-400 border border-green-600/40'
-          : 'bg-violet-600 hover:bg-violet-500 text-white border border-transparent'
+          : 'bg-sky-500 hover:bg-sky-400 text-white border border-transparent'
         }`}
     >
       {copied ? (

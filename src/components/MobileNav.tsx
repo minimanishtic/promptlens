@@ -48,7 +48,7 @@ export default function MobileNav() {
     <>
       {/* Hamburger button — only visible below sm */}
       <button
-        className="sm:hidden flex items-center justify-center w-11 h-11 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+        className="sm:hidden flex items-center justify-center w-11 h-11 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-colors"
         onClick={() => setOpen(true)}
         aria-label="Open navigation menu"
         aria-expanded={open}
@@ -75,7 +75,7 @@ export default function MobileNav() {
         tabIndex={-1}
         className={`
           fixed top-0 right-0 bottom-0 z-50 w-72 max-w-[calc(100vw-3rem)]
-          bg-zinc-950 border-l border-zinc-800 flex flex-col
+          bg-zinc-950 border-l border-zinc-800/80 flex flex-col
           transition-transform duration-200 ease-out
           sm:hidden
           outline-none
@@ -83,9 +83,9 @@ export default function MobileNav() {
         `}
       >
         {/* Drawer header */}
-        <div className="flex items-center justify-between px-5 h-14 border-b border-zinc-800 shrink-0">
-          <span className="text-base font-bold">
-            Prompt<span className="text-violet-500">Lens</span>
+        <div className="flex items-center justify-between px-5 h-14 border-b border-zinc-800/80 shrink-0">
+          <span className="text-base font-bold tracking-tight">
+            Prompt<span className="text-sky-400">Lens</span>
           </span>
           <button
             onClick={close}
@@ -108,14 +108,14 @@ export default function MobileNav() {
                 className={`
                   flex items-center gap-3 px-6 py-4 text-base transition-colors
                   ${active
-                    ? 'text-white font-medium bg-violet-600/10 border-r-2 border-violet-500'
+                    ? 'text-white font-medium bg-sky-500/10 border-r-2 border-sky-400'
                     : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
                   }
                 `}
               >
                 {label}
                 {active && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-violet-500" />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-sky-400" />
                 )}
               </Link>
             )
@@ -123,7 +123,7 @@ export default function MobileNav() {
         </nav>
 
         {/* Auth section at bottom */}
-        <div className="border-t border-zinc-800 shrink-0">
+        <div className="border-t border-zinc-800/80 shrink-0">
           {loading ? (
             <div className="px-6 py-4">
               <div className="h-10 rounded-lg bg-zinc-800 animate-pulse" />
@@ -132,7 +132,7 @@ export default function MobileNav() {
             <div className="px-5 py-4 space-y-1">
               {/* User info */}
               <div className="flex items-center gap-3 px-1 py-2 mb-1">
-                <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold text-white shrink-0 border border-zinc-600">
                   {(user.email ?? 'U').slice(0, 1).toUpperCase()}
                 </div>
                 <p className="text-sm text-zinc-300 truncate">{user.email}</p>
@@ -143,7 +143,7 @@ export default function MobileNav() {
                 onClick={close}
                 className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
               >
-                <BookMarked className="w-4 h-4 text-violet-400 shrink-0" />
+                <BookMarked className="w-4 h-4 text-sky-400 shrink-0" />
                 My Library
               </Link>
               {/* Sign out */}
@@ -159,7 +159,7 @@ export default function MobileNav() {
             <div className="px-5 py-4">
               <button
                 onClick={() => { close(); openAuth('login') }}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-white hover:bg-zinc-100 text-zinc-950 text-sm font-semibold transition-colors"
               >
                 <User className="w-4 h-4" />
                 Sign in

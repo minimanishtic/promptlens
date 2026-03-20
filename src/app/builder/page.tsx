@@ -11,7 +11,7 @@ export default function BuilderPage() {
       <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md">
         <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center gap-4">
           <a href="/" className="text-lg font-bold text-white shrink-0">
-            Prompt<span className="text-violet-500">Lens</span>
+            Prompt<span className="text-sky-400">Lens</span>
           </a>
           <span className="text-zinc-700 hidden sm:block">|</span>
           <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
@@ -33,10 +33,10 @@ export default function BuilderPage() {
       <section className="border-b border-zinc-800/50 bg-gradient-to-b from-zinc-900/60 to-transparent">
         <div className="max-w-screen-xl mx-auto px-4 py-10 sm:py-14">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-violet-600/15 border border-violet-600/20 flex items-center justify-center">
-              <Wand2 className="w-5 h-5 text-violet-400" />
+            <div className="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/20 flex items-center justify-center">
+              <Wand2 className="w-5 h-5 text-sky-400" />
             </div>
-            <span className="text-xs font-bold text-violet-400 uppercase tracking-widest">Prompt Builder</span>
+            <span className="text-xs font-bold text-sky-400 uppercase tracking-widest">Prompt Builder</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3 tracking-tight">
             Build your perfect prompt

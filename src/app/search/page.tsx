@@ -200,7 +200,7 @@ function SearchContent() {
       <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md">
         <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center gap-4">
           <a href="/" className="text-lg font-bold text-white shrink-0">
-            Prompt<span className="text-violet-500">Lens</span>
+            Prompt<span className="text-sky-400">Lens</span>
           </a>
           <span className="text-zinc-700 hidden sm:block">|</span>
           <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
@@ -222,7 +222,7 @@ function SearchContent() {
         {/* Search bar */}
         <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto mb-6">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-violet-400 transition-colors pointer-events-none" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-sky-400 transition-colors pointer-events-none" />
             <input
               ref={inputRef}
               type="text"
@@ -230,12 +230,12 @@ function SearchContent() {
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Search prompts... e.g. woman in golden hour with bokeh"
               autoFocus
-              className="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-500 text-white placeholder-zinc-500 rounded-xl pl-12 pr-4 sm:pr-28 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-violet-500/20"
+              className="w-full bg-zinc-900 border border-zinc-700 focus:border-sky-400 text-white placeholder-zinc-500 rounded-xl pl-12 pr-4 sm:pr-28 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-sky-500/15"
             />
             <button
               type="submit"
               disabled={!inputValue.trim()}
-              className="hidden sm:block absolute right-2 top-1/2 -translate-y-1/2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              className="hidden sm:block absolute right-2 top-1/2 -translate-y-1/2 bg-sky-500 hover:bg-sky-400 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               Search
             </button>
@@ -243,7 +243,7 @@ function SearchContent() {
           <button
             type="submit"
             disabled={!inputValue.trim()}
-            className="sm:hidden w-full py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+            className="sm:hidden w-full py-3 bg-sky-500 hover:bg-sky-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
           >
             Search
           </button>
@@ -253,7 +253,7 @@ function SearchContent() {
         {done && totalCount > 0 && (
           <div className="flex items-center gap-3 mb-5">
             {isSemantic && (
-              <span className="flex items-center gap-1.5 text-xs bg-violet-600/15 text-violet-300 border border-violet-600/30 rounded-full px-3 py-1">
+              <span className="flex items-center gap-1.5 text-xs bg-sky-500/15 text-sky-300 border border-sky-500/25 rounded-full px-3 py-1">
                 <Sparkles className="w-3 h-3" />
                 Semantic search
               </span>
@@ -267,7 +267,7 @@ function SearchContent() {
               ) : (
                 <>Showing results for </>
               )}
-              <span className="text-violet-400">&ldquo;{query}&rdquo;</span>
+              <span className="text-sky-400">&ldquo;{query}&rdquo;</span>
             </p>
           </div>
         )}
@@ -288,13 +288,13 @@ function SearchContent() {
             <p className="text-zinc-300 text-lg font-medium mb-2">No results found</p>
             <p className="text-zinc-500 text-sm mb-6">
               Nothing matched{' '}
-              <span className="text-violet-400">&ldquo;{query}&rdquo;</span>.
+              <span className="text-sky-400">&ldquo;{query}&rdquo;</span>.
               Try different or simpler keywords.
             </p>
             <div className="flex gap-3">
               <a
                 href="/browse"
-                className="text-sm bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg transition-colors"
+                className="text-sm bg-sky-500 hover:bg-sky-400 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Browse all images
               </a>
@@ -349,8 +349,8 @@ function SearchContent() {
         {/* No query yet */}
         {!searched && !loading && (
           <div className="flex flex-col items-center justify-center py-32 text-center flex-1">
-            <div className="w-14 h-14 rounded-full bg-violet-600/10 flex items-center justify-center mb-4">
-              <Sparkles className="w-6 h-6 text-violet-400" />
+            <div className="w-14 h-14 rounded-full bg-sky-500/10 flex items-center justify-center mb-4">
+              <Sparkles className="w-6 h-6 text-sky-400" />
             </div>
             <p className="text-zinc-300 text-sm font-medium mb-1">Semantic search powered by AI</p>
             <p className="text-zinc-600 text-xs">
@@ -367,7 +367,7 @@ export default function SearchPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <SearchContent />

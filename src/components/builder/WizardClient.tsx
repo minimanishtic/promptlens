@@ -43,16 +43,16 @@ function ProgressBar({ currentStep, total }: { currentStep: number; total: numbe
             <div className="flex items-center gap-1.5 mb-1">
               <div
                 className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all duration-300
-                ${i < currentStep ? 'bg-violet-600 text-white' : i === currentStep ? 'bg-violet-600 text-white ring-2 ring-violet-400/40' : 'bg-zinc-800 text-zinc-500'}`}
+                ${i < currentStep ? 'bg-sky-500 text-white' : i === currentStep ? 'bg-sky-500 text-white ring-2 ring-sky-400/40' : 'bg-zinc-800 text-zinc-500'}`}
                 aria-label={`Step ${i + 1}: ${step.title}${i < currentStep ? ' (completed)' : i === currentStep ? ' (current)' : ''}`}
               >
                 {i < currentStep ? '✓' : i + 1}
               </div>
-              <span className={`text-[11px] font-medium transition-colors hidden sm:block ${i === currentStep ? 'text-violet-300' : i < currentStep ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              <span className={`text-[11px] font-medium transition-colors hidden sm:block ${i === currentStep ? 'text-sky-300' : i < currentStep ? 'text-zinc-400' : 'text-zinc-600'}`}>
                 {step.title}
               </span>
             </div>
-            <div className={`h-0.5 rounded-full transition-all duration-500 ${i < currentStep ? 'bg-violet-600' : i === currentStep ? 'bg-violet-600/50' : 'bg-zinc-800'}`} />
+            <div className={`h-0.5 rounded-full transition-all duration-500 ${i < currentStep ? 'bg-sky-500' : i === currentStep ? 'bg-sky-500/50' : 'bg-zinc-800'}`} />
           </div>
           {i < total - 1 && <ChevronRight className="w-3 h-3 text-zinc-700 shrink-0 mb-1" />}
         </div>
@@ -74,7 +74,7 @@ function Breadcrumb({ selections, steps }: { selections: Record<string, string>;
     <div className="flex items-center gap-1 flex-wrap text-xs text-zinc-500 mb-6 bg-zinc-900/60 border border-zinc-800 rounded-lg px-3 py-2">
       {crumbs.map((crumb, i) => (
         <span key={i} className="flex items-center gap-1">
-          <span className={i === crumbs.length - 1 ? 'text-violet-300 font-medium' : 'text-zinc-400'}>{crumb}</span>
+          <span className={i === crumbs.length - 1 ? 'text-sky-300 font-medium' : 'text-zinc-400'}>{crumb}</span>
           {i < crumbs.length - 1 && <ChevronRight className="w-3 h-3 text-zinc-600 shrink-0" />}
         </span>
       ))}
@@ -208,7 +208,7 @@ export default function WizardClient() {
                 </button>
               )}
               <div>
-                <p className="text-xs font-bold text-violet-400 uppercase tracking-widest mb-0.5">
+                <p className="text-xs font-bold text-sky-400 uppercase tracking-widest mb-0.5">
                   Step {currentStep + 1} of {STEPS.length} — {currentConfig.title}
                 </p>
                 <h2 className="text-2xl sm:text-3xl font-bold text-white">{currentConfig.question}</h2>
@@ -240,8 +240,8 @@ export default function WizardClient() {
           {resultsLoading ? (
             <div className="flex flex-col items-center justify-center py-32 gap-4 text-zinc-500">
               <div className="relative w-12 h-12">
-                <div className="absolute inset-0 rounded-full border-2 border-violet-600/20" />
-                <div className="absolute inset-0 rounded-full border-2 border-t-violet-500 animate-spin" />
+                <div className="absolute inset-0 rounded-full border-2 border-sky-500/20" />
+                <div className="absolute inset-0 rounded-full border-2 border-t-sky-400 animate-spin" />
               </div>
               <p className="text-sm">Finding your best matching prompts…</p>
             </div>

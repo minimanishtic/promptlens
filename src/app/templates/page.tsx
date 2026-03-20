@@ -16,7 +16,7 @@ export default async function TemplatesPage() {
       <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md">
         <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center gap-4">
           <a href="/" className="text-lg font-bold text-white shrink-0">
-            Prompt<span className="text-violet-500">Lens</span>
+            Prompt<span className="text-sky-400">Lens</span>
           </a>
           <span className="text-zinc-700 hidden sm:block">|</span>
           <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
@@ -38,10 +38,10 @@ export default async function TemplatesPage() {
       <section className="border-b border-zinc-800/50 bg-gradient-to-b from-zinc-900/60 to-transparent">
         <div className="max-w-screen-xl mx-auto px-4 py-12 sm:py-16">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-violet-600/15 border border-violet-600/20 flex items-center justify-center">
-              <FileText className="w-5 h-5 text-violet-400" />
+            <div className="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/20 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-sky-400" />
             </div>
-            <span className="text-xs font-bold text-violet-400 uppercase tracking-widest">Prompt Templates</span>
+            <span className="text-xs font-bold text-sky-400 uppercase tracking-widest">Prompt Templates</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3 tracking-tight">
             Proven prompts that work
@@ -56,7 +56,7 @@ export default async function TemplatesPage() {
               <a
                 key={cat}
                 href={`#${cat.replace(/\s+/g, '-').toLowerCase()}`}
-                className="text-xs px-3 py-1.5 rounded-full border border-zinc-700 text-zinc-400 hover:border-violet-600/50 hover:text-violet-300 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-full border border-zinc-700 text-zinc-400 hover:border-sky-500/50 hover:text-sky-300 transition-colors"
               >
                 {cat}
               </a>

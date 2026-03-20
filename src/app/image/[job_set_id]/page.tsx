@@ -30,7 +30,7 @@ function formatNumber(n: number | null): string {
 
 function Tag({ label, color = 'default' }: { label: string; color?: 'violet' | 'blue' | 'amber' | 'default' }) {
   const styles = {
-    violet: 'bg-violet-600/20 text-violet-300 border-violet-600/30',
+    violet: 'bg-sky-500/15 text-sky-300 border-sky-500/25',
     blue: 'bg-blue-600/20 text-blue-300 border-blue-600/30',
     amber: 'bg-amber-600/20 text-amber-300 border-amber-600/30',
     default: 'bg-zinc-700/60 text-zinc-300 border-zinc-600/40',
@@ -159,7 +159,7 @@ export default async function ImageDetailPage({
       <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md">
         <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center gap-4">
           <a href="/" className="text-lg font-bold text-white shrink-0">
-            Prompt<span className="text-violet-500">Lens</span>
+            Prompt<span className="text-sky-400">Lens</span>
           </a>
           <span className="text-zinc-700 hidden sm:block">|</span>
           <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
@@ -300,7 +300,7 @@ export default async function ImageDetailPage({
               <h2 className="text-base font-semibold text-white">Similar Images</h2>
               <Link
                 href={`/browse${gen.primary_category ? `?category=${encodeURIComponent(gen.primary_category)}` : ''}`}
-                className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
               >
                 View all →
               </Link>

@@ -52,7 +52,7 @@ export default function StepGrid({ options, selected, onSelect, loading, cols = 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-zinc-500">
-        <Loader2 className="w-7 h-7 animate-spin text-violet-500" />
+        <Loader2 className="w-7 h-7 animate-spin text-sky-400" />
         <span className="text-sm">Loading examples…</span>
       </div>
     )
@@ -73,7 +73,7 @@ export default function StepGrid({ options, selected, onSelect, loading, cols = 
         return (
           <div key={opt.value} className="relative">
             {opt.recommended && (
-              <div className="absolute -top-2 left-3 z-10 px-2 py-0.5 rounded-full bg-violet-600 text-white text-[10px] font-bold uppercase tracking-wide shadow">
+              <div className="absolute -top-2 left-3 z-10 px-2 py-0.5 rounded-full bg-sky-500 text-white text-[10px] font-bold uppercase tracking-wide shadow">
                 Recommended
               </div>
             )}

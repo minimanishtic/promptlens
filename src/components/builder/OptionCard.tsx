@@ -25,7 +25,7 @@ export default function OptionCard({ option, label, sublabel, selected, disabled
       aria-pressed={selected}
       className={`relative w-full text-left rounded-xl border-2 overflow-hidden transition-all duration-200 group
         ${selected
-          ? 'border-violet-500 ring-2 ring-violet-500/30 shadow-lg shadow-violet-900/20'
+          ? 'border-sky-400 ring-2 ring-sky-500/20 shadow-lg shadow-sky-900/20'
           : isEmpty
             ? 'border-zinc-800 opacity-40 cursor-not-allowed'
             : 'border-zinc-800 hover:border-zinc-600 hover:shadow-md cursor-pointer'
@@ -70,8 +70,8 @@ export default function OptionCard({ option, label, sublabel, selected, disabled
 
         {/* Selected overlay */}
         {selected && (
-          <div className="absolute inset-0 bg-violet-600/10 flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center shadow-lg">
+          <div className="absolute inset-0 bg-sky-500/10 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center shadow-lg">
               <Check className="w-4 h-4 text-white" />
             </div>
           </div>
@@ -79,8 +79,8 @@ export default function OptionCard({ option, label, sublabel, selected, disabled
       </div>
 
       {/* Label area */}
-      <div className={`px-3 py-2.5 ${selected ? 'bg-violet-950/40' : 'bg-zinc-900'}`}>
-        <p className={`text-sm font-semibold leading-tight ${selected ? 'text-violet-300' : 'text-white'}`}>
+      <div className={`px-3 py-2.5 ${selected ? 'bg-sky-950/40' : 'bg-zinc-900'}`}>
+        <p className={`text-sm font-semibold leading-tight ${selected ? 'text-sky-300' : 'text-white'}`}>
           {label}
         </p>
         {sublabel && (

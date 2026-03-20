@@ -39,7 +39,7 @@ function LibraryCard({
 
   return (
     <div className={`relative group bg-zinc-900 border rounded-xl overflow-hidden transition-all duration-200
-      ${selected ? 'border-violet-500 ring-2 ring-violet-500/20' : 'border-zinc-800 hover:border-zinc-700'}`}>
+      ${selected ? 'border-sky-400 ring-2 ring-sky-500/15' : 'border-zinc-800 hover:border-zinc-700'}`}>
 
       {/* Select checkbox */}
       <button
@@ -52,7 +52,7 @@ function LibraryCard({
         aria-label={selected ? 'Deselect' : 'Select'}
       >
         <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shadow-md
-          ${selected ? 'bg-violet-600 border-violet-600' : 'bg-zinc-900/90 border-zinc-500'}`}>
+          ${selected ? 'bg-sky-500 border-sky-500' : 'bg-zinc-900/90 border-zinc-500'}`}>
           {selected && <Check className="w-3.5 h-3.5 text-white" />}
         </span>
       </button>
@@ -89,7 +89,7 @@ function LibraryCard({
       {/* Info */}
       <div className="p-3 space-y-1.5">
         {gen?.model && (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-600/15 text-violet-400 border border-violet-600/20">
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/20">
             {MODEL_DISPLAY_NAMES[gen.model] ?? gen.model}
           </span>
         )}
@@ -136,14 +136,14 @@ function NewCollectionModal({ onClose, onCreate }: { onClose: () => void; onCrea
           onChange={e => setName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && name.trim() && onCreate(name.trim())}
           placeholder="Collection name"
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-violet-500 transition-colors mb-4"
+          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-sky-400 transition-colors mb-4"
         />
         <div className="flex gap-2">
           <button onClick={onClose} className="flex-1 py-2 rounded-lg text-sm text-zinc-400 border border-zinc-700 hover:border-zinc-500 transition-colors">Cancel</button>
           <button
             onClick={() => name.trim() && onCreate(name.trim())}
             disabled={!name.trim()}
-            className="flex-1 py-2 rounded-lg text-sm font-medium bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 text-white transition-colors"
+            className="flex-1 py-2 rounded-lg text-sm font-medium bg-sky-500 hover:bg-sky-400 disabled:bg-sky-800 text-white transition-colors"
           >
             Create
           </button>
@@ -291,7 +291,7 @@ export default function LibraryClient() {
       <div className="flex flex-col items-center justify-center py-32 gap-4 text-center">
         <BookMarked className="w-12 h-12 text-zinc-700" />
         <p className="text-zinc-400 font-medium">Sign in to access your library</p>
-        <button onClick={() => openAuth('login')} className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-lg transition-colors">
+        <button onClick={() => openAuth('login')} className="px-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium rounded-lg transition-colors">
           Sign in
         </button>
       </div>
@@ -327,7 +327,7 @@ export default function LibraryClient() {
                   key={item.id}
                   onClick={() => setActiveCollection(item.id)}
                   className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors
-                    ${activeCollection === item.id ? 'text-white bg-violet-600/15 border-r-2 border-violet-500' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
+                    ${activeCollection === item.id ? 'text-white bg-sky-500/15 border-r-2 border-sky-400' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
                 >
                   <item.icon className="w-4 h-4 shrink-0" />
                   <span className="flex-1 text-left truncate">{item.name}</span>
@@ -351,7 +351,7 @@ export default function LibraryClient() {
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as SortBy)}
-                className="appearance-none bg-zinc-900 border border-zinc-700 rounded-lg pl-3 pr-8 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-violet-500 transition-colors cursor-pointer"
+                className="appearance-none bg-zinc-900 border border-zinc-700 rounded-lg pl-3 pr-8 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-sky-400 transition-colors cursor-pointer"
               >
                 <option value="created_at">Date saved</option>
                 <option value="views_count">Views</option>
@@ -384,7 +384,7 @@ export default function LibraryClient() {
           {/* Loading */}
           {loading && (
             <div className="flex justify-center py-24">
-              <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-sky-400" />
             </div>
           )}
 
@@ -411,7 +411,7 @@ export default function LibraryClient() {
                   ? 'Browse images and click the bookmark icon to save prompts you like.'
                   : 'Save prompts and assign them to this collection.'}
               </p>
-              <Link href="/browse" className="mt-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-lg transition-colors">
+              <Link href="/browse" className="mt-2 px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium rounded-lg transition-colors">
                 Browse images
               </Link>
             </div>

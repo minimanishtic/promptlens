@@ -125,8 +125,8 @@ export default function AuthModal() {
 
         {/* Logo */}
         <div className="mb-6">
-          <p className="text-lg font-bold">
-            Prompt<span className="text-violet-500">Lens</span>
+          <p className="text-lg font-bold tracking-tight">
+            Prompt<span className="text-sky-400">Lens</span>
           </p>
           <h2 className="text-xl font-bold text-white mt-3">
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
@@ -173,7 +173,7 @@ export default function AuthModal() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-colors"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 transition-colors"
               />
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function AuthModal() {
                 placeholder={mode === 'signup' ? 'Min. 6 characters' : '••••••••'}
                 required
                 minLength={6}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-9 pr-10 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-colors"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-9 pr-10 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 transition-colors"
               />
               <button
                 type="button"
@@ -215,7 +215,7 @@ export default function AuthModal() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+            className="w-full bg-white hover:bg-zinc-100 disabled:opacity-50 text-zinc-950 font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {mode === 'login' ? 'Sign in' : 'Create account'}
@@ -225,7 +225,7 @@ export default function AuthModal() {
         {/* Switch mode */}
         <p className="text-center text-xs text-zinc-500 mt-5">
           {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
-          <button onClick={switchMode} className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
+          <button onClick={switchMode} className="text-sky-400 hover:text-sky-300 font-medium transition-colors">
             {mode === 'login' ? 'Sign up' : 'Sign in'}
           </button>
         </p>

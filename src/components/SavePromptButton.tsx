@@ -137,7 +137,7 @@ export default function SavePromptButton({ jobSetId }: Props) {
       <button
         onClick={handleUnsave}
         disabled={loading}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-violet-600/20 text-violet-300 border border-violet-600/40 hover:bg-red-900/20 hover:text-red-400 hover:border-red-700/40 transition-all duration-200"
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-red-900/20 hover:text-red-400 hover:border-red-700/40 transition-all duration-200"
       >
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookmarkCheck className="w-4 h-4" />}
         {loading ? 'Removing…' : 'Saved'}
@@ -171,7 +171,7 @@ export default function SavePromptButton({ jobSetId }: Props) {
               <select
                 value={selectedCollection}
                 onChange={e => setSelectedCollection(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-white focus:outline-none focus:border-violet-500 transition-colors"
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-white focus:outline-none focus:border-sky-500 transition-colors"
               >
                 <option value="">No collection</option>
                 {collections.map(c => (
@@ -189,7 +189,7 @@ export default function SavePromptButton({ jobSetId }: Props) {
               value={newCollectionName}
               onChange={e => setNewCollectionName(e.target.value)}
               placeholder="e.g. Golden Hour Portraits"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-violet-500 transition-colors"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-sky-500 transition-colors"
             />
           </div>
 
@@ -201,7 +201,7 @@ export default function SavePromptButton({ jobSetId }: Props) {
               onChange={e => setNotes(e.target.value)}
               placeholder="What do you like about this prompt?"
               rows={2}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-violet-500 transition-colors resize-none"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-sky-500 transition-colors resize-none"
             />
           </div>
 
@@ -215,14 +215,14 @@ export default function SavePromptButton({ jobSetId }: Props) {
               value={tagsInput}
               onChange={e => setTagsInput(e.target.value)}
               placeholder="golden hour, portrait, bokeh"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-violet-500 transition-colors"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-sky-500 transition-colors"
             />
           </div>
 
           <button
             onClick={handleSave}
             disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-violet-800 text-white font-semibold py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-white hover:bg-zinc-100 disabled:opacity-50 text-zinc-950 font-semibold py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? 'Saving…' : 'Save to library'}

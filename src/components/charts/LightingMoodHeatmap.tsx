@@ -19,16 +19,16 @@ export default function LightingMoodHeatmap({ data }: Props) {
   const bgColor = (count: number) => {
     if (count === 0) return 'bg-zinc-900'
     const intensity = count / maxCount
-    if (intensity > 0.75) return 'bg-violet-600'
-    if (intensity > 0.5) return 'bg-violet-700'
-    if (intensity > 0.25) return 'bg-violet-800'
-    if (intensity > 0.1) return 'bg-violet-900'
-    return 'bg-violet-950'
+    if (intensity > 0.75) return 'bg-sky-500'
+    if (intensity > 0.5) return 'bg-sky-600'
+    if (intensity > 0.25) return 'bg-sky-800'
+    if (intensity > 0.1) return 'bg-sky-800'
+    return 'bg-sky-950'
   }
 
   const textColor = (count: number) => {
     const intensity = count / maxCount
-    return intensity > 0.25 ? 'text-white' : intensity > 0 ? 'text-violet-300' : 'text-zinc-700'
+    return intensity > 0.25 ? 'text-white' : intensity > 0 ? 'text-sky-300' : 'text-zinc-700'
   }
 
   return (
@@ -76,7 +76,7 @@ export default function LightingMoodHeatmap({ data }: Props) {
       </table>
       <div className="flex items-center gap-3 mt-4 justify-end">
         <span className="text-xs text-zinc-600">Fewer</span>
-        {['bg-violet-950', 'bg-violet-900', 'bg-violet-800', 'bg-violet-700', 'bg-violet-600'].map((bg) => (
+        {['bg-sky-950', 'bg-sky-800', 'bg-sky-700', 'bg-sky-600', 'bg-sky-500'].map((bg) => (
           <div key={bg} className={`w-6 h-4 rounded ${bg}`} />
         ))}
         <span className="text-xs text-zinc-600">More</span>

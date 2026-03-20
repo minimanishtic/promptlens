@@ -66,8 +66,8 @@ export default function SemanticImageCard({
         {/* Similarity badge — top right */}
         <div className="absolute top-2 right-2">
           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full
-            ${matchPct >= 85 ? 'bg-violet-600 text-white' :
-              matchPct >= 70 ? 'bg-violet-600/70 text-white' :
+            ${matchPct >= 85 ? 'bg-sky-500 text-white' :
+              matchPct >= 70 ? 'bg-sky-500/70 text-white' :
               'bg-zinc-800/80 text-zinc-300'}
           `}>
             {matchPct}%

@@ -40,7 +40,7 @@ function FilterSection({
         <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
           {label}
           {selected.length > 0 && (
-            <span className="ml-1.5 text-[10px] bg-violet-600 text-white rounded-full px-1.5 py-0.5">
+            <span className="ml-1.5 text-[10px] bg-sky-500 text-white rounded-full px-1.5 py-0.5">
               {selected.length}
             </span>
           )}
@@ -62,7 +62,7 @@ function FilterSection({
                 type="checkbox"
                 checked={selected.includes(value)}
                 onChange={() => onToggle(value)}
-                className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 text-violet-600 focus:ring-violet-600 focus:ring-offset-0 shrink-0"
+                className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 text-sky-500 focus:ring-sky-500 focus:ring-offset-0 shrink-0 accent-sky-500"
               />
               <span className="text-xs text-zinc-400 group-hover:text-zinc-200 transition-colors truncate flex-1">
                 {optLabel}
