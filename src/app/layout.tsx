@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import dynamic from "next/dynamic";
 import { AuthProvider } from "@/context/AuthContext";
+import { Analytics } from "@vercel/analytics/next";
 
 // Split into separate chunks — these are UI overlays that don't affect initial render
 const AuthModal = dynamic(() => import("@/components/AuthModal"));
@@ -60,6 +61,7 @@ export default function RootLayout({
           <AuthModal />
           <BackToTop />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
