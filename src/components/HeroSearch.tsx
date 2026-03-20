@@ -32,21 +32,21 @@ export default function HeroSearch() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
       <div className="relative group">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-sky-400 transition-colors pointer-events-none" />
+        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-sky-400 transition-colors pointer-events-none" />
         <input
           ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Try: woman in golden hour with bokeh, dark moody product shot..."
-          className="w-full bg-zinc-900 border border-zinc-700/80 focus:border-sky-500 text-white placeholder-zinc-500 rounded-xl pl-12 pr-32 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-sky-500/15"
+          className="w-full h-14 bg-zinc-900/90 border border-zinc-700/80 focus:border-sky-500 text-white placeholder-zinc-500 rounded-lg pl-12 pr-[7.5rem] text-lg outline-none transition-all focus:ring-2 focus:ring-sky-500/15"
         />
         <button
           type="submit"
           disabled={!query.trim()}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-950 text-sm font-semibold px-5 py-2 rounded-lg transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-10 bg-white hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-950 text-sm font-semibold px-6 rounded-md transition-colors"
         >
           Search
         </button>

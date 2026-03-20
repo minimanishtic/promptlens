@@ -98,30 +98,30 @@ function TrendingCard({ image }: { image: Generation }) {
   return (
     <Link
       href={`/image/${image.job_set_id}`}
-      className="group shrink-0 w-44 sm:w-48 block"
+      className="group shrink-0 w-[11.5rem] sm:w-52 md:w-56 lg:w-60 block transition-transform duration-300 hover:-translate-y-0.5"
     >
-      <div className="relative overflow-hidden rounded-xl bg-zinc-900 aspect-[3/4]">
+      <div className="relative overflow-hidden rounded-lg bg-zinc-900 aspect-[3/4] shadow-lg shadow-black/40 ring-1 ring-zinc-800/80 transition-shadow duration-300 group-hover:shadow-xl group-hover:shadow-black/50 group-hover:ring-zinc-700/80">
         {thumbnail ? (
           <Image
             src={thumbnail}
             alt={image.prompt ?? 'AI generated image'}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             unoptimized
-            sizes="192px"
+            sizes="(max-width: 640px) 184px, (max-width: 1024px) 208px, 240px"
           />
         ) : (
           <div className="absolute inset-0 bg-zinc-800" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-2.5 space-y-1">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1">
           {modelLabel && (
-            <span className="block text-[10px] font-semibold text-white/90 bg-white/10 backdrop-blur-sm rounded px-1.5 py-0.5 w-fit">
+            <span className="block text-[11px] font-semibold text-white/95 bg-black/35 backdrop-blur-sm rounded px-2 py-0.5 w-fit">
               {modelLabel}
             </span>
           )}
           {image.views_count != null && (
-            <span className="flex items-center gap-1 text-[10px] text-white/70">
+            <span className="flex items-center gap-1 text-[11px] text-white/75">
               <Eye className="w-3 h-3" />
               {image.views_count >= 1000
                 ? `${(image.views_count / 1000).toFixed(1)}k`
@@ -146,27 +146,31 @@ function CategoryCard({
   return (
     <Link
       href={`/browse?category=${encodeURIComponent(name)}`}
-      className="group relative overflow-hidden rounded-xl bg-zinc-900 aspect-[3/4] block"
+      className="group relative block overflow-hidden rounded-lg bg-zinc-900 aspect-[4/3] shadow-md shadow-black/30 ring-1 ring-zinc-800/70 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-black/45 hover:ring-zinc-700/60"
     >
       {thumbnail ? (
         <Image
           src={thumbnail}
           alt={name}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105 brightness-[0.45] group-hover:brightness-[0.55]"
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           unoptimized
-          sizes="(max-width: 640px) 50vw, 25vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
       ) : (
         <div className="absolute inset-0 bg-zinc-800" />
       )}
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+      {/* Bottom ~40% legibility wash */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 top-[55%] bg-gradient-to-t from-black via-black/75 to-transparent"
+        aria-hidden
+      />
 
-      {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end p-3 sm:p-4">
-        <p className="text-white font-semibold text-sm leading-tight">{name}</p>
-        <p className="text-zinc-400 text-xs mt-0.5">{count.toLocaleString()} images</p>
+      <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end p-4 sm:p-5 text-left">
+        <p className="text-white font-semibold text-base sm:text-lg leading-snug line-clamp-3 sm:line-clamp-none">
+          {name}
+        </p>
+        <p className="text-sm text-zinc-400 mt-1">{count.toLocaleString()} images</p>
       </div>
     </Link>
   )
@@ -211,41 +215,43 @@ export default async function HomePage() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden py-16 sm:py-20">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[600px] h-[300px] bg-sky-500/8 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(100%,52rem)] h-[min(70vh,28rem)] bg-sky-500/[0.06] rounded-full blur-3xl" />
         </div>
 
-        <div className="relative max-w-screen-xl mx-auto px-4 pt-12 pb-8 sm:pt-16 sm:pb-10 flex flex-col items-center text-center">
-          <div className="flex items-center gap-2 bg-zinc-800/80 border border-zinc-700/60 text-zinc-300 text-xs px-3 py-1.5 rounded-full mb-5">
-            <Layers className="w-3.5 h-3.5 text-sky-400" />
-            6,846 real community images · indexed &amp; classified
-          </div>
-
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-3 leading-[1.08]">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
+          <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tighter text-white mb-4 sm:mb-5 leading-[0.95]">
             Prompt<span className="text-sky-400">Lens</span>
           </h1>
-          <p className="text-lg sm:text-xl text-zinc-400 font-medium mb-3">
+          <p className="text-2xl sm:text-3xl lg:text-4xl text-zinc-200 font-semibold tracking-tight mb-4 max-w-4xl leading-tight px-1">
             Stop guessing. Start directing.
           </p>
-          <p className="text-zinc-500 text-sm sm:text-base max-w-lg mb-7 leading-relaxed">
+          <p className="text-zinc-500 text-lg sm:text-xl max-w-2xl mb-6 sm:mb-7 leading-relaxed">
             Browse 6,800+ AI-generated images. Find the exact prompt, model, and settings that produce the results you want.
           </p>
 
-          <HeroSearch />
+          <div className="w-full mb-3 sm:mb-4">
+            <HeroSearch />
+          </div>
+          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-zinc-600">
+            <Layers className="w-3.5 h-3.5 text-zinc-500 shrink-0" aria-hidden />
+            <span>6,846 indexed community images · classified by style, light &amp; mood</span>
+          </p>
         </div>
       </section>
 
       {/* ── Categories ── */}
-      <section className="max-w-screen-xl mx-auto px-4 pb-12 sm:pb-16">
-        <div className="flex items-center justify-between gap-4 mb-5">
-          <h2 className="text-lg font-semibold text-white tracking-tight">Browse by Category</h2>
-          <Link href="/browse" className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-14 sm:pb-20">
+        <div className="flex items-end justify-between gap-4 mb-4 sm:mb-5">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight text-left">
+            Browse by Category
+          </h2>
+          <Link href="/browse" className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0 pb-0.5">
             View all <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
-        {/* Portrait tiles — same style as trending cards, 4 cols on desktop */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {categories.slice(0, 8).map((cat) => (
             <CategoryCard
               key={cat.name}
@@ -258,24 +264,24 @@ export default async function HomePage() {
       </section>
 
       {/* ── Trending ── */}
-      <section className="py-12 border-t border-zinc-800/50">
-        <div className="max-w-screen-xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-lg font-semibold text-white tracking-tight">Trending Generations</h2>
-              <p className="text-xs text-zinc-500 mt-0.5">Highest viewed from the community</p>
+      <section className="py-10 sm:py-12 border-t border-zinc-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-end justify-between gap-4 mb-3">
+            <div className="text-left">
+              <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">Trending</h2>
+              <p className="text-xs sm:text-sm text-zinc-500 mt-1">Highest viewed from the community</p>
             </div>
             <Link
               href="/browse"
-              className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0"
+              className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0 pb-0.5"
             >
               View all <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
-        <div className="max-w-screen-xl mx-auto px-4">
-          <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-thin snap-x snap-mandatory">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-thin snap-x snap-mandatory">
             {trendingImages.map((image) => (
               <div key={image.id} className="snap-start">
                 <TrendingCard image={image} />
