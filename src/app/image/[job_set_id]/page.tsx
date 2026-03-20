@@ -14,37 +14,9 @@ import ImageCard from '@/components/ImageCard'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-function parseReferenceUrls(raw: unknown): string[] {
-  if (!raw) return []
-
-  // Already an array
-  if (Array.isArray(raw)) return raw.filter((u): u is string => typeof u === 'string')
-
-  if (typeof raw === 'string') {
-    // Might be a plain URL
-    if (raw.startsWith('http')) return [raw]
-    // Try JSON parse (handles double-escaped strings too)
-    try {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed.filter((u): u is string => typeof u === 'string')
-      if (typeof parsed === 'string') {
-        // double-escaped — parse again
-        try {
-          const inner = JSON.parse(parsed)
-          if (Array.isArray(inner)) return inner.filter((u): u is string => typeof u === 'string')
-        } catch { /* ignore */ }
-      }
-    } catch { /* ignore */ }
-  }
-
-  // Object with values
-  if (typeof raw === 'object') {
-    return Object.values(raw as Record<string, unknown>).filter(
-      (v): v is string => typeof v === 'string',
-    )
-  }
-
-  return []
+function getReferenceUrls(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  return raw.filter((u): u is string => typeof u === 'string')
 }
 
 function formatNumber(n: number | null): string {
@@ -167,7 +139,7 @@ export default async function ImageDetailPage({
     if (data) similarImages = data as Generation[]
   }
 
-  const refUrls = parseReferenceUrls(gen.reference_image_urls)
+  const refUrls = getReferenceUrls(gen.reference_image_urls)
   const modelLabel = gen.model ? (MODEL_DISPLAY_NAMES[gen.model] ?? gen.model) : null
   const dimensions = gen.width && gen.height ? `${gen.width} × ${gen.height}` : null
 
