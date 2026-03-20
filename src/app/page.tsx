@@ -146,7 +146,7 @@ function CategoryCard({
   return (
     <Link
       href={`/browse?category=${encodeURIComponent(name)}`}
-      className="group relative overflow-hidden rounded-2xl bg-zinc-900 aspect-[4/3] block"
+      className="group relative overflow-hidden rounded-2xl bg-zinc-900 aspect-[16/9] sm:aspect-[4/3] block"
     >
       {thumbnail && (
         <Image
@@ -155,15 +155,15 @@ function CategoryCard({
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105 brightness-50 group-hover:brightness-60"
           unoptimized
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
       )}
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end p-4">
-        <p className="text-white font-semibold text-sm leading-tight">{name}</p>
+      <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-5">
+        <p className="text-white font-semibold text-sm sm:text-base leading-tight">{name}</p>
         <p className="text-zinc-400 text-xs mt-1">{count.toLocaleString()} images</p>
       </div>
 
@@ -226,7 +226,7 @@ export default async function HomePage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[400px] bg-violet-600/10 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative max-w-screen-xl mx-auto px-4 pt-16 pb-10 sm:pt-24 sm:pb-20 flex flex-col items-center text-center">
+        <div className="relative max-w-screen-xl mx-auto px-4 pt-16 pb-8 sm:pt-24 sm:pb-12 flex flex-col items-center text-center">
           {/* Badge */}
           <div className="flex items-center gap-2 bg-violet-600/10 border border-violet-600/20 text-violet-300 text-xs px-3 py-1.5 rounded-full mb-6">
             <Layers className="w-3.5 h-3.5" />
@@ -239,7 +239,7 @@ export default async function HomePage() {
           <p className="text-xl sm:text-2xl text-zinc-300 font-medium mb-4">
             Stop guessing. Start directing.
           </p>
-          <p className="text-zinc-500 text-base sm:text-lg max-w-xl mb-10 leading-relaxed">
+          <p className="text-zinc-500 text-base sm:text-lg max-w-xl mb-8 leading-relaxed">
             Browse 6,800+ AI-generated images. Find the exact prompt, model, and settings that produce the results you want.
           </p>
 
@@ -248,14 +248,15 @@ export default async function HomePage() {
       </section>
 
       {/* ── Categories ── */}
-      <section className="max-w-screen-xl mx-auto px-4 py-8 sm:py-16">
-        <div className="flex items-center justify-between gap-4 mb-6">
+      <section className="max-w-screen-xl mx-auto px-4 pt-2 pb-12 sm:pt-4 sm:pb-16">
+        <div className="flex items-center justify-between gap-4 mb-5">
           <h2 className="text-xl font-semibold text-white">Browse by Category</h2>
           <Link href="/browse" className="text-sm text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 shrink-0">
             View all <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        {/* 1 col mobile → 2 col tablet → 4 col desktop, taller cards fill the space */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {categories.slice(0, 8).map((cat) => (
             <CategoryCard
               key={cat.name}
