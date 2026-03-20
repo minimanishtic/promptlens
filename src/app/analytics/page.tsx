@@ -1,15 +1,18 @@
 import Link from 'next/link'
+import nextDynamic from 'next/dynamic'
 import { BarChart2, TrendingUp, Image as ImageIcon, Zap, Tag } from 'lucide-react'
 import { fetchAllAnalytics } from '@/lib/analytics'
 import { NavAuthButton } from '@/components/UserMenu'
 import MobileNav from '@/components/MobileNav'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
-import ModelByCategoryChart from '@/components/charts/ModelByCategoryChart'
-import ModelEngagementChart from '@/components/charts/ModelEngagementChart'
-import PromptLengthChart from '@/components/charts/PromptLengthChart'
-import VisualStyleDonut from '@/components/charts/VisualStyleDonut'
-import ReferenceImpactChart from '@/components/charts/ReferenceImpactChart'
 import LightingMoodHeatmap from '@/components/charts/LightingMoodHeatmap'
+
+// Chart.js is 154KB — lazy-load so it only ships to browsers visiting /analytics
+const ModelByCategoryChart = nextDynamic(() => import('@/components/charts/ModelByCategoryChart'))
+const ModelEngagementChart  = nextDynamic(() => import('@/components/charts/ModelEngagementChart'))
+const PromptLengthChart     = nextDynamic(() => import('@/components/charts/PromptLengthChart'))
+const VisualStyleDonut      = nextDynamic(() => import('@/components/charts/VisualStyleDonut'))
+const ReferenceImpactChart  = nextDynamic(() => import('@/components/charts/ReferenceImpactChart'))
 
 export const dynamic = 'force-dynamic'
 

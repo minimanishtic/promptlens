@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import BackToTop from "@/components/BackToTop";
+import dynamic from "next/dynamic";
 import { AuthProvider } from "@/context/AuthContext";
-import AuthModal from "@/components/AuthModal";
+
+// Split into separate chunks — these are UI overlays that don't affect initial render
+const AuthModal = dynamic(() => import("@/components/AuthModal"));
+const BackToTop = dynamic(() => import("@/components/BackToTop"));
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
