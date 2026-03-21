@@ -146,31 +146,38 @@ function CategoryCard({
   return (
     <Link
       href={`/browse?category=${encodeURIComponent(name)}`}
-      className="group relative block overflow-hidden rounded-lg bg-zinc-900 aspect-[4/3] shadow-md shadow-black/30 ring-1 ring-zinc-800/70 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-black/45 hover:ring-zinc-700/60"
+      className="group block w-full min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 rounded-lg"
     >
-      {thumbnail ? (
-        <Image
-          src={thumbnail}
-          alt={name}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          unoptimized
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+      {/*
+        Inner box carries aspect-ratio + overflow so grid column width is real layout size.
+        (fill Image is position:absolute and does not contribute to min-content width — without
+        this, columns can collapse to tiny tracks on some browsers.)
+      */}
+      <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg bg-zinc-900 shadow-md shadow-black/30 ring-1 ring-zinc-800/70 transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-xl group-hover:shadow-black/45 group-hover:ring-zinc-700/60">
+        {thumbnail ? (
+          <Image
+            src={thumbnail}
+            alt={name}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            unoptimized
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 34vw, 25vw"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-zinc-800" />
+        )}
+        {/* Bottom ~40% legibility wash */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 top-[55%] bg-gradient-to-t from-black via-black/75 to-transparent"
+          aria-hidden
         />
-      ) : (
-        <div className="absolute inset-0 bg-zinc-800" />
-      )}
-      {/* Bottom ~40% legibility wash */}
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 top-[55%] bg-gradient-to-t from-black via-black/75 to-transparent"
-        aria-hidden
-      />
 
-      <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end p-4 sm:p-5 text-left">
-        <p className="text-white font-semibold text-base sm:text-lg leading-snug line-clamp-3 sm:line-clamp-none">
-          {name}
-        </p>
-        <p className="text-sm text-zinc-400 mt-1">{count.toLocaleString()} images</p>
+        <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end p-4 sm:p-5 text-left">
+          <p className="text-white font-semibold text-base sm:text-lg leading-snug line-clamp-3 sm:line-clamp-none">
+            {name}
+          </p>
+          <p className="text-sm text-zinc-400 mt-1">{count.toLocaleString()} images</p>
+        </div>
       </div>
     </Link>
   )
@@ -241,25 +248,27 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Categories ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-14 sm:pb-20">
-        <div className="flex items-end justify-between gap-4 mb-4 sm:mb-5">
-          <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight text-left">
-            Browse by Category
-          </h2>
-          <Link href="/browse" className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0 pb-0.5">
-            View all <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {categories.slice(0, 8).map((cat) => (
-            <CategoryCard
-              key={cat.name}
-              name={cat.name}
-              count={cat.count}
-              thumbnail={cat.thumbnail}
-            />
-          ))}
+      {/* ── Categories (sibling of hero — own full-width band + max-w-7xl inner) ── */}
+      <section className="w-full pb-14 sm:pb-20">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6">
+          <div className="flex items-end justify-between gap-4 mb-4 sm:mb-5">
+            <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight text-left">
+              Browse by Category
+            </h2>
+            <Link href="/browse" className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0 pb-0.5">
+              View all <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {categories.slice(0, 8).map((cat) => (
+              <CategoryCard
+                key={cat.name}
+                name={cat.name}
+                count={cat.count}
+                thumbnail={cat.thumbnail}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
