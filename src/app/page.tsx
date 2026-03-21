@@ -9,6 +9,7 @@ import type { Generation } from '@/types/database'
 import type { Database } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import HeroSearch from '@/components/HeroSearch'
+import { KNOWN_PRIMARY_CATEGORIES } from '@/lib/primary-categories'
 
 // Plain server-side client — no cookie handling needed for public reads
 const db = createClient<Database>(
@@ -41,25 +42,12 @@ async function getTrendingImages(): Promise<Generation[]> {
   return (data as Generation[]) ?? []
 }
 
-// Hard-coded category list so we never rely on scanning all rows to discover them.
-// These are the 8 known primary_category values in the database.
-const KNOWN_CATEGORIES = [
-  'Portrait & Headshot',
-  'Fashion & Editorial',
-  'Fantasy & Creative',
-  'Cinematic & Film Still',
-  'Landscape & Architecture',
-  'Street & Documentary',
-  'Product Photography',
-  'Identity Transform',
-]
-
 async function getCategoryData(): Promise<
   { name: string; count: number; thumbnail: string | null }[]
 > {
   // Fetch count + top thumbnail for each category in parallel
   const results = await Promise.all(
-    KNOWN_CATEGORIES.map(async (name) => {
+    KNOWN_PRIMARY_CATEGORIES.map(async (name) => {
       const [countRes, thumbRes] = await Promise.all([
         db
           .from('generations')

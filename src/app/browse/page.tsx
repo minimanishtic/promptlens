@@ -10,6 +10,7 @@ import FilterSidebar from '@/components/FilterSidebar'
 import { NavAuthButton } from '@/components/UserMenu'
 import MobileNav from '@/components/MobileNav'
 import { SlidersHorizontal, X, FilterX } from 'lucide-react'
+import { KNOWN_PRIMARY_CATEGORIES } from '@/lib/primary-categories'
 
 const PAGE_SIZE = 24
 
@@ -115,23 +116,34 @@ function BrowseContent() {
   const mainRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    supabase
-      .from('generations')
-      .select('primary_category')
-      .not('primary_category', 'is', null)
-      .then(({ data }) => {
-        if (!data) return
-        const counts: Record<string, number> = {}
-        ;(data as { primary_category: string | null }[]).forEach((row) => {
-          const cat = row.primary_category
-          if (cat) counts[cat] = (counts[cat] ?? 0) + 1
-        })
-        setCategories(
-          Object.entries(counts)
-            .sort((a, b) => b[1] - a[1])
-            .map(([value, count]) => ({ value, label: value, count })),
-        )
+    const fallback = KNOWN_PRIMARY_CATEGORIES.map((name) => ({
+      value: name,
+      label: name,
+      count: 0,
+    }))
+    let cancelled = false
+    fetch('/api/browse/categories')
+      .then((res) => {
+        if (!res.ok) throw new Error(`categories ${res.status}`)
+        return res.json() as Promise<{
+          categories: { value: string; label: string; count: number }[]
+        }>
       })
+      .then((json) => {
+        if (cancelled) return
+        if (json.categories?.length) {
+          setCategories(json.categories)
+        } else {
+          setCategories(fallback)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load browse categories:', err)
+        if (!cancelled) setCategories(fallback)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const fetchImages = useCallback(
