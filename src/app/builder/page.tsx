@@ -62,13 +62,15 @@ export default function BuilderPage() {
               Konvert Media
             </a>
           </div>
-          <span>Powered by Higgsfield AI community data</span>
-          <div className="flex items-center gap-4">
+          <span>Powered by community data from multiple AI platforms</span>
+          <div className="flex items-center flex-wrap gap-x-4 gap-y-2 justify-center">
             <Link href="/browse"    className="hover:text-zinc-300 transition-colors">Browse</Link>
             <Link href="/glossary"  className="hover:text-zinc-300 transition-colors">Glossary</Link>
             <Link href="/analytics" className="hover:text-zinc-300 transition-colors">Analytics</Link>
             <Link href="/templates" className="hover:text-zinc-300 transition-colors">Templates</Link>
             <Link href="/builder"   className="hover:text-zinc-300 transition-colors">Builder</Link>
+            <Link href="/terms" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Terms</Link>
+            <Link href="/privacy" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Privacy</Link>
           </div>
         </div>
       </footer>

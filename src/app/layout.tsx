@@ -21,23 +21,39 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "PromptLens — Visual Prompt Intelligence",
+    default: "PromptLens — Stop Guessing. Start Directing.",
     template: "%s | PromptLens",
   },
   description:
-    "Browse 6,846 real AI-generated images from Higgsfield AI. Find the exact prompt, model, and settings that produce the results you want.",
+    "Browse 7,400+ AI-generated images classified by style, lighting, and mood. Find the exact prompt, model, and settings that produce the results you want.",
   metadataBase: new URL("https://promptlens-two.vercel.app"),
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
   },
   openGraph: {
+    title: "PromptLens — Stop Guessing. Start Directing.",
+    description:
+      "Browse 7,400+ AI-generated images. Find the exact prompt and settings that produce the results you want.",
+    url: "https://promptlens-two.vercel.app",
     siteName: "PromptLens",
-    type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "PromptLens — AI Prompt Intelligence Tool",
+      },
+    ],
     locale: "en_US",
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
+    title: "PromptLens — Stop Guessing. Start Directing.",
+    description:
+      "Browse 7,400+ AI-generated images. Find the exact prompt and settings that work.",
+    images: ["/og-image.png"],
   },
 };
 

@@ -113,19 +113,37 @@ export default function ImageDetailContent({
         </div>
 
         <div className="space-y-6">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-zinc-400">
-              <Eye className="w-4 h-4" />
-              <span className="text-sm font-medium text-zinc-200">{formatNumber(gen.views_count)}</span>
-              <span className="text-xs">views</span>
+          <div className="space-y-2">
+            <div className="flex items-center gap-6 flex-wrap">
+              <div className="flex items-center gap-2 text-zinc-400">
+                <Eye className="w-4 h-4" />
+                <span className="text-sm font-medium text-zinc-200">{formatNumber(gen.views_count)}</span>
+                <span className="text-xs">views</span>
+              </div>
+              <div className="flex items-center gap-2 text-zinc-400">
+                <Heart className="w-4 h-4" />
+                <span className="text-sm font-medium text-zinc-200">{formatNumber(gen.likes_count)}</span>
+                <span className="text-xs">likes</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-zinc-400">
-              <Heart className="w-4 h-4" />
-              <span className="text-sm font-medium text-zinc-200">{formatNumber(gen.likes_count)}</span>
-              <span className="text-xs">likes</span>
-            </div>
-            {gen.creator_username && (
-              <span className="text-xs text-zinc-500 ml-auto">@{gen.creator_username}</span>
+            <p className="text-xs text-zinc-400">
+              {gen.source === 'original' ? (
+                <>Created by Konvert Media</>
+              ) : gen.creator_username ? (
+                <>
+                  Created by @{gen.creator_username}
+                </>
+              ) : (
+                <>Community image</>
+              )}
+            </p>
+            {(!gen.source || gen.source === 'community') && (
+              <a
+                href={`mailto:content@konvert.media?subject=${encodeURIComponent('Image Removal Request')}&body=${encodeURIComponent(`Image ID: ${gen.job_set_id}\nUsername: ${gen.creator_username || 'N/A'}\nReason: `)}`}
+                className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors underline inline-block"
+              >
+                Is this your image? Request removal
+              </a>
             )}
           </div>
 

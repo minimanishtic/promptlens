@@ -20,12 +20,12 @@ const db = createClient<Database>(
 export const metadata: Metadata = {
   title: 'PromptLens — Visual Prompt Intelligence',
   description:
-    'Browse 6,846 real AI-generated images. Stop guessing — find the exact prompt, model, and settings that produce the results you want.',
+    'Browse 7,400+ AI-generated images across multiple platforms. Stop guessing — find the exact prompt, model, and settings that produce the results you want.',
   openGraph: {
     title: 'PromptLens — Visual Prompt Intelligence',
     description:
-      'Browse 6,846 real AI-generated images. Find the exact prompt, model, and settings.',
-    url: 'https://promptlens.vercel.app',
+      'Browse 7,400+ AI-generated images. Find the exact prompt, model, and settings.',
+    url: 'https://promptlens-two.vercel.app',
   },
 }
 
@@ -223,7 +223,7 @@ export default async function HomePage() {
             Stop guessing. Start directing.
           </p>
           <p className="text-zinc-500 text-lg sm:text-xl max-w-2xl mb-6 sm:mb-7 leading-relaxed">
-            Browse 6,800+ AI-generated images. Find the exact prompt, model, and settings that produce the results you want.
+            Browse 7,400+ AI-generated images across multiple platforms. Find the exact prompt, model, and settings that produce the results you want.
           </p>
 
           <div className="w-full mb-3 sm:mb-4">
@@ -231,7 +231,7 @@ export default async function HomePage() {
           </div>
           <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-zinc-600">
             <Layers className="w-3.5 h-3.5 text-zinc-500 shrink-0" aria-hidden />
-            <span>6,846 indexed community images · classified by style, light &amp; mood</span>
+            <span>7,400+ indexed images · classified by AI vision</span>
           </p>
         </div>
       </section>
@@ -302,7 +302,7 @@ export default async function HomePage() {
               Konvert Media
             </a>
           </div>
-          <span className="text-zinc-700">Powered by Higgsfield AI community data</span>
+          <span className="text-zinc-700">Powered by community data from multiple AI platforms</span>
           <div className="flex items-center flex-wrap gap-x-4 gap-y-2 justify-center">
             <Link href="/browse" className="hover:text-zinc-300 transition-colors">Browse</Link>
             <Link href="/glossary" className="hover:text-zinc-300 transition-colors">Glossary</Link>
@@ -310,6 +310,8 @@ export default async function HomePage() {
             <Link href="/templates" className="hover:text-zinc-300 transition-colors">Templates</Link>
             <Link href="/builder" className="hover:text-zinc-300 transition-colors">Builder</Link>
             <Link href="/library" className="hover:text-zinc-300 transition-colors">Library</Link>
+            <Link href="/terms" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Terms</Link>
+            <Link href="/privacy" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Privacy</Link>
           </div>
         </div>
       </footer>

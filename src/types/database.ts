@@ -17,6 +17,8 @@ export type Generation = {
   reference_image_urls: unknown | null
   reference_files: unknown | null
   creator_username: string | null
+  /** e.g. "original" (Konvert) vs "community" — optional until column exists everywhere */
+  source?: string | null
   primary_category: string | null
   sub_category: string | null
   visual_style: string | null
