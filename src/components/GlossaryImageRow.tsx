@@ -36,6 +36,7 @@ export default function GlossaryImageRow({ column, value }: GlossaryImageRowProp
               .select('*')
               .eq(column, value)
               .not('output_image_url', 'is', null)
+              .order('sort_priority', { ascending: true })
               .order('views_count', { ascending: false })
               .limit(8),
             supabase

@@ -37,6 +37,7 @@ async function getTrendingImages(): Promise<Generation[]> {
   const { data } = await db
     .from('generations')
     .select('*')
+    .order('sort_priority', { ascending: true })
     .order('views_count', { ascending: false })
     .limit(12)
   return (data as Generation[]) ?? []
@@ -57,6 +58,7 @@ async function getCategoryData(): Promise<
           .from('generations')
           .select('output_image_url_min, output_image_url')
           .eq('primary_category', name)
+          .order('sort_priority', { ascending: true })
           .order('views_count', { ascending: false })
           .limit(1)
           .single(),

@@ -99,17 +99,23 @@ export async function POST(req: Request) {
 
     const fullRecords = (fullData as Generation[]) ?? []
 
-    // 5. Merge full records with similarity scores, preserving RPC order
+    // 5. Merge full records with similarity scores; sort below keeps RPC similarity order with tie-breaks
     const resultMap = new Map<string, SemanticResult>()
     for (const gen of fullRecords) {
       const similarity = similarityMap.get(gen.job_set_id) ?? 0
       resultMap.set(gen.job_set_id, { ...gen, similarity })
     }
 
-    // Re-order to match RPC ranking (highest similarity first)
+    // Rank by similarity (RPC order), then break ties with originals first
     const results: SemanticResult[] = ids
       .map((id) => resultMap.get(id))
       .filter((r): r is SemanticResult => r !== undefined)
+
+    results.sort((a, b) => {
+      const sim = (b.similarity ?? 0) - (a.similarity ?? 0)
+      if (sim !== 0) return sim
+      return (a.sort_priority ?? 1) - (b.sort_priority ?? 1)
+    })
 
     return NextResponse.json({ results, query })
   } catch (err) {

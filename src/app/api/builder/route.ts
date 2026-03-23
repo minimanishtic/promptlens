@@ -114,6 +114,7 @@ async function fetchCategoryStep(): Promise<WizardStepData> {
         .select('output_image_url_min, output_image_url', { count: 'exact' })
         .eq('primary_category', cat)
         .not('output_image_url', 'is', null)
+        .order('sort_priority', { ascending: true })
         .order('views_count', { ascending: false })
         .limit(1)
 
@@ -139,6 +140,7 @@ async function fetchOptionStep(
         .from('generations')
         .select('output_image_url_min, output_image_url', { count: 'exact' })
         .not('output_image_url', 'is', null)
+        .order('sort_priority', { ascending: true })
         .order('views_count', { ascending: false })
         .limit(imageCount)
 
@@ -168,6 +170,7 @@ async function fetchModelStep(selections: Record<string, string>): Promise<Wizar
     .eq('composition', selections.composition ?? '')
     .not('model', 'is', null)
     .not('output_image_url', 'is', null)
+    .order('sort_priority', { ascending: true })
     .order('views_count', { ascending: false })
     .limit(500)
 
@@ -223,6 +226,7 @@ async function handleResults(selections: Record<string, string>): Promise<Builde
       .eq('has_prompt', true)
       .not('output_image_url', 'is', null)
       .not('prompt', 'is', null)
+      .order('sort_priority', { ascending: true })
       .order('views_count', { ascending: false })
       .limit(5)
 

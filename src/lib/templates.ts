@@ -34,6 +34,7 @@ export async function fetchTemplates(filterModel?: string): Promise<{
     .eq('has_prompt', true)
     .not('output_image_url', 'is', null)
     .not('prompt', 'is', null)
+    .order('sort_priority', { ascending: true })
     .order('views_count', { ascending: false })
 
   if (filterModel) {

@@ -19,6 +19,8 @@ export type Generation = {
   creator_username: string | null
   /** e.g. "original" (Konvert) vs "community" — optional until column exists everywhere */
   source?: string | null
+  /** 0 = original first in listings; 1 = community — set via migration from `source` */
+  sort_priority?: number | null
   primary_category: string | null
   sub_category: string | null
   visual_style: string | null

@@ -46,6 +46,7 @@ export async function getImageDetailPayload(jobSetId: string): Promise<{
       .from('generations')
       .select('*')
       .neq('job_set_id', jobSetId)
+      .order('sort_priority', { ascending: true })
       .order('views_count', { ascending: false })
       .limit(8)
 

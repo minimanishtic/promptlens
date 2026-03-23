@@ -33,6 +33,7 @@ async function fullTextSearch(query: string, page: number): Promise<Generation[]
     .from('generations')
     .select('*')
     .textSearch('prompt', query, { type: 'websearch' })
+    .order('sort_priority', { ascending: true })
     .order('views_count', { ascending: false })
     .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
   if (error) throw error

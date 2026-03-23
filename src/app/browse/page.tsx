@@ -154,6 +154,7 @@ function BrowseContent() {
       let query = supabase
         .from('generations')
         .select('*')
+        .order('sort_priority', { ascending: true })
         .order(currentSort, { ascending: false })
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
 
