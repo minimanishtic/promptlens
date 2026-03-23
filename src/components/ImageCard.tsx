@@ -6,6 +6,7 @@ import { Eye } from 'lucide-react'
 import { useState } from 'react'
 import type { Generation } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
+import { generationThumbnailUrl } from '@/lib/generation-image-url'
 
 interface ImageCardProps {
   image: Generation
@@ -31,7 +32,7 @@ export default function ImageCard({
   priority = false,
   sizes = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw',
 }: ImageCardProps) {
-  const thumbnailUrl = image.output_image_url_min ?? image.output_image_url
+  const thumbnailUrl = generationThumbnailUrl(image)
   const modelLabel = image.model ? (MODEL_DISPLAY_NAMES[image.model] ?? image.model) : null
   const modelColor = image.model ? (MODEL_COLORS[image.model] ?? 'bg-zinc-600') : 'bg-zinc-600'
   const [loaded, setLoaded] = useState(false)

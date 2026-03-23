@@ -10,6 +10,7 @@ import type { Database } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import HeroSearch from '@/components/HeroSearch'
 import { KNOWN_PRIMARY_CATEGORIES } from '@/lib/primary-categories'
+import { generationThumbnailUrl } from '@/lib/generation-image-url'
 
 // Plain server-side client — no cookie handling needed for public reads
 const db = createClient<Database>(
@@ -69,7 +70,7 @@ async function getCategoryData(): Promise<
         output_image_url_min: string | null
         output_image_url: string | null
       } | null
-      const thumbnail = thumbData?.output_image_url_min ?? thumbData?.output_image_url ?? null
+      const thumbnail = thumbData ? generationThumbnailUrl(thumbData) : null
 
       return { name, count, thumbnail }
     }),
@@ -82,7 +83,7 @@ async function getCategoryData(): Promise<
 // ─── sub-components ───────────────────────────────────────────────────────────
 
 function TrendingCard({ image }: { image: Generation }) {
-  const thumbnail = image.output_image_url_min ?? image.output_image_url
+  const thumbnail = generationThumbnailUrl(image)
   const modelLabel = image.model ? (MODEL_DISPLAY_NAMES[image.model] ?? image.model) : null
 
   return (

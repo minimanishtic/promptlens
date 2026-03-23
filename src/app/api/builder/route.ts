@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database, Generation } from '@/types/database'
+import { generationThumbnailUrl } from '@/lib/generation-image-url'
 
 const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -119,7 +120,7 @@ async function fetchCategoryStep(): Promise<WizardStepData> {
         .limit(1)
 
       const row = data?.[0] as { output_image_url_min: string | null; output_image_url: string | null } | undefined
-      const img = row?.output_image_url_min ?? row?.output_image_url ?? ''
+      const img = generationThumbnailUrl(row ?? {}) ?? ''
       return { value: cat, images: img ? [img] : [], count: count ?? 0 }
     }),
   )
@@ -150,7 +151,7 @@ async function fetchOptionStep(
 
       const { data, count } = await q
       const images = ((data ?? []) as { output_image_url_min: string | null; output_image_url: string | null }[])
-        .map((r) => r.output_image_url_min ?? r.output_image_url ?? '')
+        .map((r) => generationThumbnailUrl(r) ?? '')
         .filter(Boolean)
 
       return { value: val, images, count: count ?? 0 }
@@ -185,7 +186,7 @@ async function fetchModelStep(selections: Record<string, string>): Promise<Wizar
     entry.total += r.views_count ?? 0
     entry.count += 1
     if (entry.imgs.length < 2) {
-      const img = r.output_image_url_min ?? r.output_image_url
+      const img = generationThumbnailUrl(r)
       if (img) entry.imgs.push(img)
     }
   }

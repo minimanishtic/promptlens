@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase-client'
 import { useAuth } from '@/context/AuthContext'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import type { SavedPrompt, PromptCollection, Generation } from '@/types/database'
+import { generationThumbnailUrl } from '@/lib/generation-image-url'
 
 // Sort option
 type SortBy = 'created_at' | 'views_count' | 'prompt'
@@ -35,7 +36,7 @@ function LibraryCard({
 }) {
   const [imgLoaded, setImgLoaded] = useState(false)
   const gen = saved.generation
-  const src = gen?.output_image_url_min ?? gen?.output_image_url ?? ''
+  const src = gen ? generationThumbnailUrl(gen) ?? '' : ''
 
   return (
     <div className={`relative group bg-zinc-900 border rounded-xl overflow-hidden transition-all duration-200

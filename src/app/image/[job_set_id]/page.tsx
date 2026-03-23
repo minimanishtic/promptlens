@@ -5,6 +5,7 @@ import { NavAuthButton } from '@/components/UserMenu'
 import MobileNav from '@/components/MobileNav'
 import ImageDetailContent from '@/components/ImageDetailContent'
 import { getImageDetailPayload, getImageSeoFields } from '@/lib/get-image-detail'
+import { generationThumbnailUrl } from '@/lib/generation-image-url'
 
 export async function generateMetadata({
   params,
@@ -24,7 +25,7 @@ export async function generateMetadata({
   const category = data.primary_category ?? 'AI Image'
   const style = data.visual_style ? ` · ${data.visual_style}` : ''
   const title = `${category}${style}`
-  const imageUrl = data.output_image_url_min ?? data.output_image_url ?? undefined
+  const imageUrl = generationThumbnailUrl(data) ?? undefined
 
   return {
     title,

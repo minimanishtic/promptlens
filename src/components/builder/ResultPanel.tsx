@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Eye, Heart, Check, Copy, ExternalLink, ChevronDown, ChevronUp, RefreshCw, LayoutGrid, Info } from 'lucide-react'
 import type { Generation } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
+import { generationThumbnailUrl } from '@/lib/generation-image-url'
 
 const RELAX_LABELS = [
   'Exact match',
@@ -37,7 +38,7 @@ function PromptResultCard({ gen, rank }: { gen: Generation; rank: number }) {
   const [imgLoaded, setImgLoaded] = useState(false)
 
   const prompt = gen.prompt ?? ''
-  const src = gen.output_image_url_min ?? gen.output_image_url ?? ''
+  const src = generationThumbnailUrl(gen) ?? ''
   const isTruncated = prompt.length > 250
   const displayPrompt = isTruncated && !expanded ? prompt.slice(0, 250) + '…' : prompt
 

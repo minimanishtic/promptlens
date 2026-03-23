@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Eye, Heart, ChevronDown, ChevronUp, ExternalLink, Check, Copy } from 'lucide-react'
 import type { Generation } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
+import { generationThumbnailUrl } from '@/lib/generation-image-url'
 
 const TRUNCATE_LENGTH = 200
 
@@ -20,7 +21,7 @@ export default function TemplateCard({ template, rank }: Props) {
   const [imgLoaded, setImgLoaded] = useState(false)
 
   const prompt = template.prompt ?? ''
-  const src = template.output_image_url_min ?? template.output_image_url ?? ''
+  const src = generationThumbnailUrl(template) ?? ''
   const isTruncated = prompt.length > TRUNCATE_LENGTH
   const displayPrompt = isTruncated && !expanded ? prompt.slice(0, TRUNCATE_LENGTH) + '…' : prompt
 

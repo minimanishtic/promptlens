@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { Generation } from '@/types/database'
+import { generationThumbnailUrl } from '@/lib/generation-image-url'
 
 interface GlossaryImageRowProps {
   column: string
@@ -83,7 +84,7 @@ export default function GlossaryImageRow({ column, value }: GlossaryImageRowProp
       {loaded && images.length > 0 && (
         <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-thin snap-x snap-mandatory">
           {images.map((img) => {
-            const src = img.output_image_url_min ?? img.output_image_url
+            const src = generationThumbnailUrl(img)
             return (
               <Link
                 key={img.id}

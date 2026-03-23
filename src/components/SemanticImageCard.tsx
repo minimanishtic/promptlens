@@ -6,6 +6,7 @@ import { Eye } from 'lucide-react'
 import { useState } from 'react'
 import type { SemanticResult } from '@/app/api/search/route'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
+import { generationThumbnailUrl } from '@/lib/generation-image-url'
 
 interface SemanticImageCardProps {
   result: SemanticResult
@@ -31,7 +32,7 @@ export default function SemanticImageCard({
   priority = false,
   sizes = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw',
 }: SemanticImageCardProps) {
-  const thumbnailUrl = result.output_image_url_min ?? result.output_image_url
+  const thumbnailUrl = generationThumbnailUrl(result)
   const modelLabel = result.model ? (MODEL_DISPLAY_NAMES[result.model] ?? result.model) : null
   const modelColor = result.model ? (MODEL_COLORS[result.model] ?? 'bg-zinc-600') : 'bg-zinc-600'
   const matchPct = Math.round(result.similarity * 100)
