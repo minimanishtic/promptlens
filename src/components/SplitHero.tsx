@@ -154,7 +154,7 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
           }}
         />
         <div className="relative z-[30] mr-auto flex w-full max-w-[min(100%,36rem)] flex-col pl-5 pr-3 sm:pl-6 sm:pr-4 md:max-w-[min(calc(50vw-2.5rem),42rem)] md:pl-10 md:pr-5 lg:max-w-[min(calc(50vw-2rem),44rem)]">
-          <div className="flex flex-col gap-2.5">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2 sm:gap-x-4 sm:gap-y-2.5 md:gap-x-5">
             {[
               'Pick a category',
               'Choose a visual style',
@@ -163,10 +163,14 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
               'Select your model',
             ].map((label, idx) => {
               const active = idx === 0
+              const isLast = idx === 4
               return (
-                <div key={label} className="flex items-center gap-3 text-base md:text-[17px]">
+                <div
+                  key={label}
+                  className={`flex min-w-0 items-center gap-2 sm:gap-2.5 text-sm md:text-[15px] ${isLast ? 'col-span-2' : ''}`}
+                >
                   <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs ${
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] sm:h-8 sm:w-8 sm:text-xs ${
                       active
                         ? 'border border-white/50 bg-white/[0.08] font-medium text-white'
                         : 'border border-white/[0.12] text-white/40'
@@ -174,12 +178,16 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
                   >
                     {idx + 1}
                   </span>
-                  <span className={active ? 'font-medium text-white' : 'text-white/40'}>{label}</span>
+                  <span
+                    className={`min-w-0 leading-snug ${active ? 'font-medium text-white' : 'text-white/40'}`}
+                  >
+                    {label}
+                  </span>
                 </div>
               )
             })}
           </div>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2 md:mt-5">
             {[
               { label: 'Flux Pro', color: '#a78bfa' },
               { label: 'SDXL', color: '#34d399' },
