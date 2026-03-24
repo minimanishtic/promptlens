@@ -73,57 +73,57 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
               'linear-gradient(160deg, rgba(30,8,8,0.7) 0%, rgba(15,4,4,0.85) 50%, rgba(10,5,5,0.93) 85%)',
           }}
         />
-        <div className="relative z-[30] ml-auto flex w-full max-w-[min(100%,36rem)] flex-col pl-3 pr-5 sm:pl-4 sm:pr-6 md:max-w-[min(calc(50vw-2.5rem),42rem)] md:pl-5 md:pr-10 lg:max-w-[min(calc(50vw-2rem),44rem)]">
-          <div className="rounded-xl border border-[rgba(220,38,38,0.25)] bg-[rgba(220,38,38,0.08)] px-5 py-[18px] transition-colors group-hover:border-[rgba(220,38,38,0.4)] md:px-6 md:py-5">
-            <div className="flex items-center gap-3">
+        <div className="relative z-[30] ml-auto flex w-full max-w-[min(100%,32.4rem)] flex-col pl-3 pr-5 sm:pl-4 sm:pr-6 md:max-w-[min(calc(50vw-2.5rem),37.8rem)] md:pl-5 md:pr-10 lg:max-w-[min(calc(50vw-2rem),39.6rem)]">
+          <div className="rounded-xl border border-[rgba(220,38,38,0.25)] bg-[rgba(220,38,38,0.08)] px-4 py-4 transition-colors group-hover:border-[rgba(220,38,38,0.4)] md:px-[1.35rem] md:py-[1.125rem]">
+            <div className="flex items-center gap-2.5">
               <Search
-                className="h-6 w-6 shrink-0 text-[rgba(255,100,100,0.4)]"
+                className="h-5 w-5 shrink-0 text-[rgba(255,100,100,0.4)]"
                 strokeWidth={2}
                 aria-hidden
               />
-              <span className="flex min-w-0 flex-1 items-center text-[17px] text-[rgba(255,140,140,0.3)] md:text-lg">
+              <span className="flex min-w-0 flex-1 items-center text-[15px] text-[rgba(255,140,140,0.3)] md:text-[1.0125rem]">
                 <span className="truncate">golden hour portrait with bokeh</span>
                 <span
-                  className="ml-0.5 inline-block h-[1.125rem] w-px shrink-0 bg-[rgba(220,38,38,0.5)] animate-hero-cursor-blink"
+                  className="ml-0.5 inline-block h-4 w-px shrink-0 bg-[rgba(220,38,38,0.5)] animate-hero-cursor-blink"
                   aria-hidden
                 />
               </span>
-              <span className="h-5 w-px shrink-0 bg-[rgba(255,100,100,0.15)]" aria-hidden />
+              <span className="h-4 w-px shrink-0 bg-[rgba(255,100,100,0.15)]" aria-hidden />
               <Mountain
-                className="h-6 w-6 shrink-0 text-[rgba(255,120,120,0.35)] transition-colors group-hover:text-[rgba(255,120,120,0.7)]"
+                className="h-5 w-5 shrink-0 text-[rgba(255,120,120,0.35)] transition-colors group-hover:text-[rgba(255,120,120,0.7)]"
                 strokeWidth={2}
                 aria-hidden
               />
             </div>
           </div>
-          <p className="mt-2 text-[11px] text-[rgba(255,140,140,0.22)] md:text-xs">
+          <p className="mt-2 text-[10px] text-[rgba(255,140,140,0.22)] md:text-[11px]">
             or drop a reference image to reverse-engineer its prompt
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-[1.125rem] flex flex-wrap gap-1.5">
             {['cinematic rain scene', 'product flat-lay', 'neon street portrait'].map((t) => (
               <span
                 key={t}
-                className="rounded-2xl border border-[rgba(220,38,38,0.2)] px-4 py-2 text-xs text-[rgba(255,140,140,0.5)] transition-colors hover:border-[rgba(220,38,38,0.45)] md:text-[13px]"
+                className="rounded-2xl border border-[rgba(220,38,38,0.2)] px-3.5 py-1.5 text-[11px] text-[rgba(255,140,140,0.5)] transition-colors hover:border-[rgba(220,38,38,0.45)] md:text-xs"
               >
                 {t}
               </span>
             ))}
           </div>
-          <span className="mt-7 w-fit rounded-[20px] border border-[rgba(220,38,38,0.4)] px-3.5 py-1.5 text-sm font-medium uppercase tracking-[0.15em] text-[rgba(255,140,140,0.7)]">
+          <span className="mt-6 w-fit rounded-[20px] border border-[rgba(220,38,38,0.4)] px-3 py-1 text-xs font-medium uppercase tracking-[0.15em] text-[rgba(255,140,140,0.7)]">
             The search engine
           </span>
-          <h2 className="font-hero-display mt-4 text-[2.5rem] font-extrabold leading-[1.05] tracking-[-0.03em] text-white sm:text-[2.75rem] md:text-6xl lg:text-[4rem]">
+          <h2 className="font-hero-display mt-3.5 text-[2.25rem] font-extrabold leading-[1.05] tracking-[-0.03em] text-white sm:text-[2.475rem] md:text-[3.375rem] lg:text-[3.6rem]">
             I know what I want
           </h2>
-          <p className="mt-4 max-w-none text-lg leading-[1.7] text-[rgba(255,200,200,0.5)] md:text-xl md:leading-relaxed">
+          <p className="mt-3.5 max-w-none text-base leading-[1.7] text-[rgba(255,200,200,0.5)] md:text-lg md:leading-relaxed">
             Describe any visual in plain English or drop a reference image. Get the exact prompt, model,
             and settings to recreate it.
           </p>
-          <span className="mt-7 flex w-full items-center justify-center rounded-xl bg-[#dc2626] px-8 py-4 text-lg font-semibold tracking-[0.02em] text-white transition-transform group-hover:-translate-y-px group-active:scale-[0.97] md:px-10 md:py-[1.125rem]">
+          <span className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#dc2626] px-7 py-3.5 text-base font-semibold tracking-[0.02em] text-white transition-transform group-hover:-translate-y-px group-active:scale-[0.97] md:px-9 md:py-4">
             Find my prompt →
           </span>
         </div>
-        <span className="absolute bottom-4 right-4 z-[30] text-xs text-[rgba(255,120,120,0.3)] sm:text-sm md:bottom-6 md:right-6">
+        <span className="absolute bottom-4 right-4 z-[30] text-[11px] text-[rgba(255,120,120,0.3)] sm:text-xs md:bottom-6 md:right-6">
           {promptsIndexed.toLocaleString()} prompts indexed
         </span>
       </Link>
@@ -153,8 +153,8 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
               'linear-gradient(160deg, rgba(10,10,10,0.7) 0%, rgba(8,8,8,0.85) 50%, rgba(6,6,6,0.93) 85%)',
           }}
         />
-        <div className="relative z-[30] mr-auto flex w-full max-w-[min(100%,36rem)] flex-col pl-5 pr-3 sm:pl-6 sm:pr-4 md:max-w-[min(calc(50vw-2.5rem),42rem)] md:pl-10 md:pr-5 lg:max-w-[min(calc(50vw-2rem),44rem)]">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2 sm:gap-x-4 sm:gap-y-2.5 md:gap-x-5">
+        <div className="relative z-[30] mr-auto flex w-full max-w-[min(100%,32.4rem)] flex-col pl-5 pr-3 sm:pl-6 sm:pr-4 md:max-w-[min(calc(50vw-2.5rem),37.8rem)] md:pl-10 md:pr-5 lg:max-w-[min(calc(50vw-2rem),39.6rem)]">
+          <div className="grid grid-cols-2 gap-x-2.5 gap-y-1.5 sm:gap-x-3.5 sm:gap-y-2 md:gap-x-[1.125rem]">
             {[
               'Pick a category',
               'Choose a visual style',
@@ -167,10 +167,10 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
               return (
                 <div
                   key={label}
-                  className={`flex min-w-0 items-center gap-2 sm:gap-2.5 text-sm md:text-[15px] ${isLast ? 'col-span-2' : ''}`}
+                  className={`flex min-w-0 items-center gap-1.5 sm:gap-2 text-[13px] md:text-sm ${isLast ? 'col-span-2' : ''}`}
                 >
                   <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] sm:h-8 sm:w-8 sm:text-xs ${
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] sm:h-7 sm:w-7 sm:text-[11px] ${
                       active
                         ? 'border border-white/50 bg-white/[0.08] font-medium text-white'
                         : 'border border-white/[0.12] text-white/40'
@@ -187,7 +187,7 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
               )
             })}
           </div>
-          <div className="mt-4 flex flex-wrap gap-2 md:mt-5">
+          <div className="mt-3.5 flex flex-wrap gap-1.5 md:mt-[1.125rem]">
             {[
               { label: 'Flux Pro', color: '#a78bfa' },
               { label: 'SDXL', color: '#34d399' },
@@ -196,28 +196,28 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
             ].map(({ label, color }) => (
               <span
                 key={label}
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/[0.08] py-2 pl-3 pr-3.5 text-xs text-white/30 transition-colors hover:border-white/25 md:text-[13px]"
+                className="inline-flex items-center gap-1.5 rounded-2xl border border-white/[0.08] py-1.5 pl-2.5 pr-3 text-[11px] text-white/30 transition-colors hover:border-white/25 md:text-xs"
               >
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
                 {label}
               </span>
             ))}
           </div>
-          <span className="mt-7 w-fit rounded-[20px] border border-white/20 px-3.5 py-1.5 text-sm font-medium uppercase tracking-[0.15em] text-white/50">
+          <span className="mt-6 w-fit rounded-[20px] border border-white/20 px-3 py-1 text-xs font-medium uppercase tracking-[0.15em] text-white/50">
             The prompt laboratory
           </span>
-          <h2 className="font-hero-display mt-4 text-[2.5rem] font-extrabold leading-[1.05] tracking-[-0.03em] text-white sm:text-[2.75rem] md:text-6xl lg:text-[4rem]">
+          <h2 className="font-hero-display mt-3.5 text-[2.25rem] font-extrabold leading-[1.05] tracking-[-0.03em] text-white sm:text-[2.475rem] md:text-[3.375rem] lg:text-[3.6rem]">
             Help me figure it out
           </h2>
-          <p className="mt-4 max-w-none text-lg leading-[1.7] text-white/45 md:text-xl md:leading-relaxed">
+          <p className="mt-3.5 max-w-none text-base leading-[1.7] text-white/45 md:text-lg md:leading-relaxed">
             Don&apos;t know what you need? We&apos;ll narrow it down together. Pick options, see real
             results at every step.
           </p>
-          <span className="mt-7 flex w-full items-center justify-center rounded-xl bg-white px-8 py-4 text-lg font-semibold tracking-[0.02em] text-[#0a0a0a] transition-transform group-hover:-translate-y-px group-active:scale-[0.97] md:px-10 md:py-[1.125rem]">
+          <span className="mt-6 flex w-full items-center justify-center rounded-xl bg-white px-7 py-3.5 text-base font-semibold tracking-[0.02em] text-[#0a0a0a] transition-transform group-hover:-translate-y-px group-active:scale-[0.97] md:px-9 md:py-4">
             Start building →
           </span>
         </div>
-        <span className="absolute bottom-4 right-4 z-[30] text-xs text-white/[0.18] sm:text-sm md:bottom-6 md:right-6">
+        <span className="absolute bottom-4 right-4 z-[30] text-[11px] text-white/[0.18] sm:text-xs md:bottom-6 md:right-6">
           5 steps to your prompt
         </span>
       </Link>
