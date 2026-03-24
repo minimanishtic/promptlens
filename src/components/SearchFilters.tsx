@@ -12,11 +12,10 @@ import {
   SIDEBAR_MOOD,
   SIDEBAR_COMPOSITION,
   SIDEBAR_CAMERA,
-  countByField,
   type SearchPillState,
   type SearchSidebarState,
-  type SearchGridItem,
 } from '@/lib/search-filter-options'
+import type { SearchGlobalFilterCounts } from '@/lib/search-global-filter-counts'
 
 export type { SearchPillState, SearchSidebarState }
 
@@ -79,7 +78,7 @@ function CheckboxRow({
 export function SearchFilterSidebar({
   sidebar,
   setSidebar,
-  baseResults,
+  globalCounts,
   variant,
   onCloseMobile,
   onToggleDesktopCollapse,
@@ -87,7 +86,7 @@ export function SearchFilterSidebar({
 }: {
   sidebar: SearchSidebarState
   setSidebar: React.Dispatch<React.SetStateAction<SearchSidebarState>>
-  baseResults: SearchGridItem[]
+  globalCounts: SearchGlobalFilterCounts | null
   variant: 'mobile' | 'desktop'
   onCloseMobile?: () => void
   onToggleDesktopCollapse?: () => void
@@ -134,7 +133,7 @@ export function SearchFilterSidebar({
             <CheckboxRow
               key={o.value}
               label={o.label}
-              count={countByField(baseResults, 'visual_style', o.value)}
+              count={globalCounts?.visual_style[o.value] ?? 0}
               checked={sidebar.visual_style.includes(o.value)}
               onChange={() => toggleSidebar('visual_style', o.value)}
             />
@@ -145,7 +144,7 @@ export function SearchFilterSidebar({
             <CheckboxRow
               key={o.value}
               label={o.label}
-              count={countByField(baseResults, 'lighting', o.value)}
+              count={globalCounts?.lighting[o.value] ?? 0}
               checked={sidebar.lighting.includes(o.value)}
               onChange={() => toggleSidebar('lighting', o.value)}
             />
@@ -156,7 +155,7 @@ export function SearchFilterSidebar({
             <CheckboxRow
               key={o.value}
               label={o.label}
-              count={countByField(baseResults, 'mood', o.value)}
+              count={globalCounts?.mood[o.value] ?? 0}
               checked={sidebar.mood.includes(o.value)}
               onChange={() => toggleSidebar('mood', o.value)}
             />
@@ -167,7 +166,7 @@ export function SearchFilterSidebar({
             <CheckboxRow
               key={o.value}
               label={o.label}
-              count={countByField(baseResults, 'composition', o.value)}
+              count={globalCounts?.composition[o.value] ?? 0}
               checked={sidebar.composition.includes(o.value)}
               onChange={() => toggleSidebar('composition', o.value)}
             />
@@ -178,7 +177,7 @@ export function SearchFilterSidebar({
             <CheckboxRow
               key={o.value}
               label={o.label}
-              count={countByField(baseResults, 'camera_simulation', o.value)}
+              count={globalCounts?.camera_simulation[o.value] ?? 0}
               checked={sidebar.camera_simulation.includes(o.value)}
               onChange={() => toggleSidebar('camera_simulation', o.value)}
             />

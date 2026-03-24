@@ -21,6 +21,7 @@ import {
   type SearchPillState,
   type SearchSidebarState,
 } from '@/lib/search-filter-options'
+import type { SearchGlobalFilterCounts } from '@/lib/search-global-filter-counts'
 
 const PAGE_SIZE = 50
 
@@ -125,6 +126,7 @@ function SearchContent() {
   const [sidebar, setSidebar] = useState<SearchSidebarState>(emptySidebar)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false)
+  const [globalFilterCounts, setGlobalFilterCounts] = useState<SearchGlobalFilterCounts | null>(null)
 
   const [semanticResults, setSemanticResults] = useState<SemanticResult[]>([])
   const [ftResults, setFtResults] = useState<Generation[]>([])
@@ -157,6 +159,22 @@ function SearchContent() {
   useEffect(() => {
     setInputValue(qParam)
   }, [qParam])
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch('/api/search/filter-counts')
+        const json = (await res.json()) as { counts?: SearchGlobalFilterCounts }
+        if (!cancelled && json.counts) setGlobalFilterCounts(json.counts)
+      } catch {
+        /* ignore */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const runMainFetch = useCallback(async () => {
     if (vibeModeRef.current) return
@@ -379,7 +397,7 @@ function SearchContent() {
               variant="desktop"
               sidebar={sidebar}
               setSidebar={setSidebar}
-              baseResults={baseResults}
+              globalCounts={globalFilterCounts}
               activeFilterCount={sidebarOnlyCount}
               onToggleDesktopCollapse={() => setDesktopSidebarCollapsed(true)}
             />
@@ -460,7 +478,7 @@ function SearchContent() {
               variant="mobile"
               sidebar={sidebar}
               setSidebar={setSidebar}
-              baseResults={baseResults}
+              globalCounts={globalFilterCounts}
               activeFilterCount={sidebarOnlyCount}
               onCloseMobile={() => setMobileFiltersOpen(false)}
             />

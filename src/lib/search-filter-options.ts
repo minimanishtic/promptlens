@@ -24,13 +24,14 @@ export const SEARCH_ASPECT_OPTIONS = [
   { value: '4:3', label: '4:3' },
 ] as const
 
+/** `value` must match `generations.visual_style` exactly (counts + filters). */
 export const SEARCH_STYLE_PILL_OPTIONS = [
   { value: 'Photorealistic', label: 'Photorealistic' },
   { value: 'Cinematic', label: 'Cinematic' },
   { value: 'Editorial', label: 'Editorial' },
   { value: 'Vintage/Film', label: 'Vintage / Film' },
-  { value: 'Anime/Illustration', label: 'Anime / Illustration' },
   { value: 'Raw/Candid', label: 'Raw / Candid' },
+  { value: 'Anime/Illustration', label: 'Anime / Illustration' },
 ] as const
 
 export const SEARCH_CATEGORY_OPTIONS = KNOWN_PRIMARY_CATEGORIES.map((name) => ({
@@ -38,12 +39,13 @@ export const SEARCH_CATEGORY_OPTIONS = KNOWN_PRIMARY_CATEGORIES.map((name) => ({
   label: name,
 }))
 
-/** Sidebar — DB `visual_style` values (subset + browse-aligned) */
+/** Sidebar — same DB strings as `SEARCH_STYLE_PILL_OPTIONS` */
 export const SIDEBAR_VISUAL_STYLE = SEARCH_STYLE_PILL_OPTIONS.map((o) => ({
   value: o.value,
   label: o.label,
 }))
 
+/** `value` must match `generations.lighting` exactly */
 export const SIDEBAR_LIGHTING = [
   { value: 'Natural/Golden Hour', label: 'Natural / Golden Hour' },
   { value: 'Studio', label: 'Studio' },
@@ -53,17 +55,19 @@ export const SIDEBAR_LIGHTING = [
   { value: 'Backlit', label: 'Backlit' },
 ] as const
 
+/** `value` must match `generations.mood` exactly */
 export const SIDEBAR_MOOD = [
   { value: 'Warm', label: 'Warm' },
   { value: 'Cold', label: 'Cold' },
   { value: 'Dramatic', label: 'Dramatic' },
-  { value: 'Intimate', label: 'Intimate' },
-  { value: 'Energetic', label: 'Energetic' },
-  { value: 'Nostalgic', label: 'Nostalgic' },
   { value: 'Dark/Gritty', label: 'Dark / Gritty' },
   { value: 'Clean/Minimal', label: 'Clean / Minimal' },
+  { value: 'Energetic', label: 'Energetic' },
+  { value: 'Nostalgic', label: 'Nostalgic' },
+  { value: 'Intimate', label: 'Intimate' },
 ] as const
 
+/** `value` must match `generations.composition` exactly */
 export const SIDEBAR_COMPOSITION = [
   { value: 'Close-up', label: 'Close-up' },
   { value: 'Medium Shot', label: 'Medium Shot' },
@@ -73,13 +77,14 @@ export const SIDEBAR_COMPOSITION = [
   { value: 'POV/First Person', label: 'POV / First Person' },
 ] as const
 
+/** `value` must match `generations.camera_simulation` exactly */
 export const SIDEBAR_CAMERA = [
   { value: 'DSLR/Mirrorless', label: 'DSLR / Mirrorless' },
-  { value: 'Film Camera', label: 'Film / Analog' },
   { value: 'Smartphone/Selfie', label: 'Smartphone / Selfie' },
+  { value: 'Film Camera', label: 'Film Camera' },
   { value: 'Drone/Aerial', label: 'Drone / Aerial' },
-  { value: 'Vintage Point-and-Shoot', label: 'Vintage camera' },
-  { value: 'Security Cam/CCTV', label: 'Security / CCTV' },
+  { value: 'Vintage Point-and-Shoot', label: 'Vintage Point-and-Shoot' },
+  { value: 'Security Cam/CCTV', label: 'Security Cam / CCTV' },
 ] as const
 
 export type SearchPillState = {
@@ -139,15 +144,4 @@ export function applySearchFilters(
 
     return true
   })
-}
-
-export function countByField(
-  items: SearchGridItem[],
-  field: keyof Pick<
-    Generation,
-    'visual_style' | 'lighting' | 'mood' | 'composition' | 'camera_simulation'
-  >,
-  value: string,
-): number {
-  return items.filter((g) => g[field] === value).length
 }
