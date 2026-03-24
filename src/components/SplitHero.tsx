@@ -35,7 +35,7 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
         className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
         aria-hidden
       >
-        <div className="animate-hero-drift relative z-0 grid h-full min-h-full w-full grid-cols-4 grid-rows-3 gap-1 p-1 opacity-[0.12] md:grid-cols-6 md:grid-rows-3">
+        <div className="animate-hero-drift relative z-0 grid h-full min-h-full w-full grid-cols-4 grid-rows-3 gap-1 p-1 opacity-[0.356] md:grid-cols-6 md:grid-rows-3">
           {cells.map((url, i) => (
             <div
               key={`${url}-${i}`}
