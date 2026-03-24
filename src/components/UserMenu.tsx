@@ -89,19 +89,37 @@ export default function UserMenu() {
 
 // A simpler version used inline in non-root navs — just the sign-in button or avatar.
 // Hidden on mobile (sm:hidden) because auth is handled inside the MobileNav drawer.
-export function NavAuthButton() {
+export function NavAuthButton({ variant = 'default' }: { variant?: 'default' | 'landing' } = {}) {
   const { user, loading, openAuth } = useAuth()
 
-  if (loading) return <div className="hidden sm:block w-8 h-8 rounded-full bg-zinc-800 animate-pulse" />
+  if (loading) {
+    return (
+      <div
+        className={`hidden sm:block w-8 h-8 rounded-full animate-pulse ${
+          variant === 'landing' ? 'bg-white/10' : 'bg-zinc-800'
+        }`}
+      />
+    )
+  }
 
   if (!user) {
     return (
       <button
         onClick={() => openAuth('login')}
-        className="hidden sm:flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60 transition-colors"
+        className={
+          variant === 'landing'
+            ? 'hidden sm:flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-md bg-white/[0.08] border border-white/[0.12] text-white/90 hover:bg-white/[0.12] hover:text-white transition-colors'
+            : 'hidden sm:flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60 transition-colors'
+        }
       >
-        <User className="w-4 h-4" />
-        Sign in
+        {variant === 'landing' ? (
+          'Sign in'
+        ) : (
+          <>
+            <User className="w-4 h-4" />
+            Sign in
+          </>
+        )}
       </button>
     )
   }

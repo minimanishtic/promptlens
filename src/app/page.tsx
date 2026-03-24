@@ -1,18 +1,16 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Eye, ArrowRight, Layers } from 'lucide-react' // ArrowRight used in section headers
+import { Eye, ArrowRight, ChevronDown } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
-import { NavAuthButton } from '@/components/UserMenu'
-import MobileNav from '@/components/MobileNav'
 import type { Generation } from '@/types/database'
 import type { Database } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
-import HeroSearch from '@/components/HeroSearch'
 import { KNOWN_PRIMARY_CATEGORIES } from '@/lib/primary-categories'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
+import TopNav from '@/components/TopNav'
+import SplitHero from '@/components/SplitHero'
 
-// Plain server-side client — no cookie handling needed for public reads
 const db = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,7 +30,37 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic'
 
-// ─── data fetching ────────────────────────────────────────────────────────────
+async function getHeroBackgroundImages(): Promise<string[]> {
+  const { data } = await db
+    .from('generations')
+    .select('output_image_url_min, output_image_url')
+    .eq('source', 'original')
+    .lt('sort_priority', 100)
+    .limit(200)
+
+  const rows = (data ?? []) as Pick<Generation, 'output_image_url_min' | 'output_image_url'>[]
+  let urls = rows
+    .map((r) => generationThumbnailUrl(r))
+    .filter((u): u is string => Boolean(u))
+
+  for (let i = urls.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[urls[i], urls[j]] = [urls[j], urls[i]]
+  }
+
+  if (urls.length === 0) return []
+  const out: string[] = []
+  for (let i = 0; i < 32; i++) out.push(urls[i % urls.length])
+  return out
+}
+
+async function getIndexedPromptCount(): Promise<number> {
+  const { count } = await db
+    .from('generations')
+    .select('id', { count: 'exact', head: true })
+    .eq('has_prompt', true)
+  return count ?? 0
+}
 
 async function getTrendingImages(): Promise<Generation[]> {
   const { data } = await db
@@ -47,7 +75,6 @@ async function getTrendingImages(): Promise<Generation[]> {
 async function getCategoryData(): Promise<
   { name: string; count: number; thumbnail: string | null }[]
 > {
-  // Fetch count + top thumbnail for each category in parallel
   const results = await Promise.all(
     KNOWN_PRIMARY_CATEGORIES.map(async (name) => {
       const [countRes, thumbRes] = await Promise.all([
@@ -76,11 +103,8 @@ async function getCategoryData(): Promise<
     }),
   )
 
-  // Sort by image count descending so most-populated categories appear first
   return results.sort((a, b) => b.count - a.count)
 }
-
-// ─── sub-components ───────────────────────────────────────────────────────────
 
 function TrendingCard({ image }: { image: Generation }) {
   const thumbnail = generationThumbnailUrl(image)
@@ -139,11 +163,6 @@ function CategoryCard({
       href={`/browse?category=${encodeURIComponent(name)}`}
       className="group block w-full min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 rounded-lg"
     >
-      {/*
-        Inner box carries aspect-ratio + overflow so grid column width is real layout size.
-        (fill Image is position:absolute and does not contribute to min-content width — without
-        this, columns can collapse to tiny tracks on some browsers.)
-      */}
       <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg bg-zinc-900 shadow-md shadow-black/30 ring-1 ring-zinc-800/70 transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-xl group-hover:shadow-black/45 group-hover:ring-zinc-700/60">
         {thumbnail ? (
           <Image
@@ -157,7 +176,6 @@ function CategoryCard({
         ) : (
           <div className="absolute inset-0 bg-zinc-800" />
         )}
-        {/* Bottom ~40% legibility wash */}
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 top-[55%] bg-gradient-to-t from-black via-black/75 to-transparent"
           aria-hidden
@@ -174,150 +192,127 @@ function CategoryCard({
   )
 }
 
-// ─── page ─────────────────────────────────────────────────────────────────────
-
 export default async function HomePage() {
-  const [trendingImages, categories] = await Promise.all([
+  const [trendingImages, categories, bgUrls, promptsIndexed] = await Promise.all([
     getTrendingImages(),
     getCategoryData(),
+    getHeroBackgroundImages(),
+    getIndexedPromptCount(),
   ])
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
-      {/* Nav */}
-      <header className="border-b border-zinc-800/50 sticky top-0 z-30 bg-zinc-950/90 backdrop-blur-md">
-        <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="text-lg font-bold tracking-tight">
-            Prompt<span className="text-sky-400">Lens</span>
-          </span>
-          <nav className="flex items-center gap-1">
-            {['Browse', 'Glossary', 'Analytics', 'Templates', 'Builder'].map((label) => (
+    <div className="flex min-h-screen flex-col bg-black text-white">
+      <TopNav />
+
+      <SplitHero bgUrls={bgUrls} promptsIndexed={promptsIndexed} />
+
+      {/* Below hero */}
+      <div className="bg-[#0a0a0a]">
+        <div className="mx-auto flex max-w-7xl flex-col items-center px-4 py-10 sm:px-6">
+          <p className="flex items-center gap-2 text-sm text-white/30">
+            Or just browse
+            <ChevronDown className="h-4 w-4 text-white/25" aria-hidden />
+          </p>
+        </div>
+
+        <section className="w-full pb-14 sm:pb-20">
+          <div className="mx-auto max-w-7xl w-full px-4 sm:px-6">
+            <div className="mb-4 flex items-end justify-between gap-4 sm:mb-5">
+              <h2 className="text-left text-xl font-semibold tracking-tight text-white sm:text-2xl">
+                Browse by Category
+              </h2>
               <Link
-                key={label}
-                href={`/${label.toLowerCase()}`}
-                className="text-sm text-zinc-400 hover:text-white transition-colors hidden sm:block px-3 py-1.5 rounded-md hover:bg-zinc-800/60"
+                href="/browse"
+                className="flex shrink-0 items-center gap-1 pb-0.5 text-sm text-zinc-400 transition-colors hover:text-white"
               >
-                {label}
+                View all <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-            ))}
-            <Link
-              href="/browse"
-              className="text-sm bg-white text-zinc-950 hover:bg-zinc-100 font-semibold px-4 py-1.5 rounded-lg transition-colors hidden sm:block ml-2"
-            >
-              Explore
-            </Link>
-            <NavAuthButton />
-            <MobileNav />
-          </nav>
-        </div>
-      </header>
-
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden py-16 sm:py-20">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(100%,52rem)] h-[min(70vh,28rem)] bg-sky-500/[0.06] rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
-          <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tighter text-white mb-4 sm:mb-5 leading-[0.95]">
-            Prompt<span className="text-sky-400">Lens</span>
-          </h1>
-          <p className="text-2xl sm:text-3xl lg:text-4xl text-zinc-200 font-semibold tracking-tight mb-4 max-w-4xl leading-tight px-1">
-            Stop guessing. Start directing.
-          </p>
-          <p className="text-zinc-500 text-lg sm:text-xl max-w-2xl mb-6 sm:mb-7 leading-relaxed">
-            Browse 7,400+ AI-generated images across multiple platforms. Find the exact prompt, model, and settings that produce the results you want.
-          </p>
-
-          <div className="w-full mb-3 sm:mb-4">
-            <HeroSearch />
-          </div>
-          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] sm:text-xs text-zinc-600">
-            <Layers className="w-3.5 h-3.5 text-zinc-500 shrink-0" aria-hidden />
-            <span>7,400+ indexed images · classified by AI vision</span>
-          </p>
-        </div>
-      </section>
-
-      {/* ── Categories (sibling of hero — own full-width band + max-w-7xl inner) ── */}
-      <section className="w-full pb-14 sm:pb-20">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6">
-          <div className="flex items-end justify-between gap-4 mb-4 sm:mb-5">
-            <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight text-left">
-              Browse by Category
-            </h2>
-            <Link href="/browse" className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0 pb-0.5">
-              View all <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          <div className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {categories.slice(0, 8).map((cat) => (
-              <CategoryCard
-                key={cat.name}
-                name={cat.name}
-                count={cat.count}
-                thumbnail={cat.thumbnail}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Trending ── */}
-      <section className="py-10 sm:py-12 border-t border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-end justify-between gap-4 mb-3">
-            <div className="text-left">
-              <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">Trending</h2>
-              <p className="text-xs sm:text-sm text-zinc-500 mt-1">Highest viewed from the community</p>
             </div>
-            <Link
-              href="/browse"
-              className="text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0 pb-0.5"
-            >
-              View all <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+              {categories.slice(0, 8).map((cat) => (
+                <CategoryCard
+                  key={cat.name}
+                  name={cat.name}
+                  count={cat.count}
+                  thumbnail={cat.thumbnail}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-thin snap-x snap-mandatory">
-            {trendingImages.map((image) => (
-              <div key={image.id} className="snap-start">
-                <TrendingCard image={image} />
+        <section className="border-t border-zinc-800/50 py-10 sm:py-12">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mb-3 flex items-end justify-between gap-4">
+              <div className="text-left">
+                <h2 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">Trending</h2>
+                <p className="mt-1 text-xs text-zinc-500 sm:text-sm">Highest viewed from the community</p>
               </div>
-            ))}
+              <Link
+                href="/browse"
+                className="flex shrink-0 items-center gap-1 pb-0.5 text-sm text-zinc-400 transition-colors hover:text-white"
+              >
+                View all <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* ── Footer ── */}
-      <footer className="mt-auto border-t border-zinc-800/50 py-8">
-        <div className="max-w-screen-xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-600">
-          <div className="flex items-center gap-1.5">
-            <span>Built by</span>
-            <a
-              href="https://konvert.media"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-zinc-400 hover:text-white transition-colors font-medium"
-            >
-              Konvert Media
-            </a>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-4 scrollbar-thin snap-x snap-mandatory sm:mx-0 sm:gap-4 sm:px-0">
+              {trendingImages.map((image) => (
+                <div key={image.id} className="snap-start">
+                  <TrendingCard image={image} />
+                </div>
+              ))}
+            </div>
           </div>
-          <span className="text-zinc-700">Powered by community data from multiple AI platforms</span>
-          <div className="flex items-center flex-wrap gap-x-4 gap-y-2 justify-center">
-            <Link href="/browse" className="hover:text-zinc-300 transition-colors">Browse</Link>
-            <Link href="/glossary" className="hover:text-zinc-300 transition-colors">Glossary</Link>
-            <Link href="/analytics" className="hover:text-zinc-300 transition-colors">Analytics</Link>
-            <Link href="/templates" className="hover:text-zinc-300 transition-colors">Templates</Link>
-            <Link href="/builder" className="hover:text-zinc-300 transition-colors">Builder</Link>
-            <Link href="/library" className="hover:text-zinc-300 transition-colors">Library</Link>
-            <Link href="/terms" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Terms</Link>
-            <Link href="/privacy" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Privacy</Link>
+        </section>
+
+        <footer className="mt-auto border-t border-zinc-800/50 py-8">
+          <div className="mx-auto flex max-w-screen-xl flex-col items-center justify-between gap-3 px-4 text-xs text-zinc-600 sm:flex-row">
+            <div className="flex items-center gap-1.5">
+              <span>Built by</span>
+              <a
+                href="https://konvert.media"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-zinc-400 transition-colors hover:text-white"
+              >
+                Konvert Media
+              </a>
+            </div>
+            <span className="text-center text-zinc-700 sm:text-left">
+              Powered by community data from multiple AI platforms
+            </span>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+              <Link href="/browse" className="transition-colors hover:text-zinc-300">
+                Browse
+              </Link>
+              <Link href="/glossary" className="transition-colors hover:text-zinc-300">
+                Glossary
+              </Link>
+              <Link href="/analytics" className="transition-colors hover:text-zinc-300">
+                Analytics
+              </Link>
+              <Link href="/templates" className="transition-colors hover:text-zinc-300">
+                Templates
+              </Link>
+              <Link href="/builder" className="transition-colors hover:text-zinc-300">
+                Builder
+              </Link>
+              <Link href="/library" className="transition-colors hover:text-zinc-300">
+                Library
+              </Link>
+              <Link href="/terms" className="text-xs text-zinc-500 transition-colors hover:text-zinc-300">
+                Terms
+              </Link>
+              <Link href="/privacy" className="text-xs text-zinc-500 transition-colors hover:text-zinc-300">
+                Privacy
+              </Link>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   )
 }
