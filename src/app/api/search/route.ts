@@ -28,21 +28,42 @@ interface RpcRow {
 // Full result shape we return to the client — Generation + similarity
 export type SemanticResult = Generation & { similarity: number }
 
+function parseStoredEmbedding(value: unknown): number[] | null {
+  if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'number') {
+    return value as number[]
+  }
+  if (typeof value === 'string') {
+    const s = value.trim()
+    if (s.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(s) as unknown
+        if (Array.isArray(parsed) && parsed.every((x) => typeof x === 'number')) {
+          return parsed as number[]
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    const parts = s.replace(/^\[/, '').replace(/\]$/, '').split(',')
+    const nums = parts.map((p) => Number.parseFloat(p.trim())).filter((n) => !Number.isNaN(n))
+    return nums.length > 0 ? nums : null
+  }
+  return null
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json() as {
-      query: string
+      query?: string
+      /** When set, uses stored embedding (or embeds that row’s prompt) instead of `query`. */
+      similar_job_set_id?: string
       category?: string
       model?: string
       limit?: number
       threshold?: number
     }
 
-    const { query, category, model, limit = 24, threshold = 0.5 } = body
-
-    if (!query?.trim()) {
-      return NextResponse.json({ error: 'query is required' }, { status: 400 })
-    }
+    const { query, similar_job_set_id, category, model, limit = 24, threshold = 0.5 } = body
 
     // Explicit key check with clear error message
     const apiKey = process.env.OPENAI_API_KEY
@@ -51,13 +72,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 })
     }
 
-    // 1. Embed the query with text-embedding-3-small
     const openai = new OpenAI({ apiKey })
-    const embeddingRes = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: query.trim(),
-    })
-    const embedding = embeddingRes.data[0].embedding
+
+    let embedding: number[]
+    let queryEcho: string
+
+    if (similar_job_set_id?.trim()) {
+      const { data: row, error: rowErr } = await supabase
+        .from('generations')
+        .select('prompt_embedding, prompt')
+        .eq('job_set_id', similar_job_set_id.trim())
+        .maybeSingle()
+
+      if (rowErr) {
+        console.error('similar_job_set_id fetch error:', rowErr)
+        return NextResponse.json({ error: rowErr.message }, { status: 500 })
+      }
+
+      const fromDb = parseStoredEmbedding((row as { prompt_embedding?: unknown } | null)?.prompt_embedding)
+      const promptText = (row as { prompt?: string | null } | null)?.prompt?.trim() ?? ''
+
+      if (fromDb && fromDb.length > 0) {
+        embedding = fromDb
+        queryEcho = promptText || similar_job_set_id.trim()
+      } else if (promptText) {
+        const embeddingRes = await openai.embeddings.create({
+          model: 'text-embedding-3-small',
+          input: promptText.slice(0, 8000),
+        })
+        embedding = embeddingRes.data[0].embedding
+        queryEcho = promptText
+      } else {
+        return NextResponse.json({ error: 'similar_job_set_id not found or has no prompt' }, { status: 400 })
+      }
+    } else if (query?.trim()) {
+      const embeddingRes = await openai.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: query.trim(),
+      })
+      embedding = embeddingRes.data[0].embedding
+      queryEcho = query.trim()
+    } else {
+      return NextResponse.json({ error: 'query or similar_job_set_id is required' }, { status: 400 })
+    }
 
     // 2. Call the Supabase RPC — returns limited fields + similarity score
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,7 +134,7 @@ export async function POST(req: Request) {
     const rpcRows: RpcRow[] = (rpcData as RpcRow[]) ?? []
 
     if (rpcRows.length === 0) {
-      return NextResponse.json({ results: [], query })
+      return NextResponse.json({ results: [], query: queryEcho })
     }
 
     // 3. Build a similarity lookup keyed by job_set_id
@@ -117,7 +174,7 @@ export async function POST(req: Request) {
       return (a.sort_priority ?? 1) - (b.sort_priority ?? 1)
     })
 
-    return NextResponse.json({ results, query })
+    return NextResponse.json({ results, query: queryEcho })
   } catch (err) {
     console.error('Semantic search error:', err)
     return NextResponse.json(

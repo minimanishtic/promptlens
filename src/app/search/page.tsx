@@ -1,41 +1,116 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState, Suspense } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Search, ArrowLeft, Frown, Sparkles } from 'lucide-react'
+import { Frown, Sparkles, Filter } from 'lucide-react'
+import TopNav from '@/components/TopNav'
+import {
+  SearchStickyFilterBar,
+  SearchFilterSidebar,
+  emptyPills,
+  emptySidebar,
+} from '@/components/SearchFilters'
+import SearchResultsGrid from '@/components/SearchResultsGrid'
+import ImageSlidePanel from '@/components/ImageSlidePanel'
 import { supabase } from '@/lib/supabase'
 import type { Generation } from '@/types/database'
 import type { SemanticResult } from '@/app/api/search/route'
-import ImageCard from '@/components/ImageCard'
-import SemanticImageCard from '@/components/SemanticImageCard'
-import { NavAuthButton } from '@/components/UserMenu'
-import MobileNav from '@/components/MobileNav'
-import ImageCardSkeleton from '@/components/ImageCardSkeleton'
+import {
+  applySearchFilters,
+  type SearchGridItem,
+  type SearchPillState,
+  type SearchSidebarState,
+} from '@/lib/search-filter-options'
 
-const PAGE_SIZE = 24
-const GRID_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw'
+const PAGE_SIZE = 50
 
-type SearchMode = 'semantic' | 'fulltext' | 'idle'
+type ListMode = 'idle' | 'trending' | 'semantic' | 'fulltext'
 
-async function semanticSearch(query: string): Promise<SemanticResult[]> {
+function mergeUnique(semantic: SemanticResult[], ft: Generation[]): SearchGridItem[] {
+  const seen = new Set<string>()
+  const out: SearchGridItem[] = []
+  for (const r of semantic) {
+    if (!seen.has(r.job_set_id)) {
+      seen.add(r.job_set_id)
+      out.push(r)
+    }
+  }
+  for (const r of ft) {
+    if (!seen.has(r.job_set_id)) {
+      seen.add(r.job_set_id)
+      out.push(r)
+    }
+  }
+  return out
+}
+
+async function semanticSearch(
+  query: string,
+  opts: { category?: string | null; model?: string | null; limit?: number },
+): Promise<SemanticResult[]> {
   const res = await fetch('/api/search', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, limit: PAGE_SIZE, threshold: 0.5 }),
+    body: JSON.stringify({
+      query,
+      limit: opts.limit ?? PAGE_SIZE,
+      threshold: 0.5,
+      category: opts.category || undefined,
+      model: opts.model || undefined,
+    }),
   })
   if (!res.ok) throw new Error(`API error ${res.status}`)
-  const json = await res.json() as { results: SemanticResult[] }
+  const json = (await res.json()) as { results: SemanticResult[] }
   return json.results ?? []
 }
 
-async function fullTextSearch(query: string, page: number): Promise<Generation[]> {
-  const { data, error } = await supabase
+async function semanticSimilar(
+  jobSetId: string,
+  opts: { category?: string | null; model?: string | null },
+): Promise<SemanticResult[]> {
+  const res = await fetch('/api/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      similar_job_set_id: jobSetId,
+      limit: PAGE_SIZE,
+      threshold: 0.45,
+      category: opts.category || undefined,
+      model: opts.model || undefined,
+    }),
+  })
+  if (!res.ok) throw new Error(`API error ${res.status}`)
+  const json = (await res.json()) as { results: SemanticResult[] }
+  return json.results ?? []
+}
+
+function buildFtQuery(q: string, page: number, pills: SearchPillState) {
+  let query = supabase
     .from('generations')
     .select('*')
-    .textSearch('prompt', query, { type: 'websearch' })
+    .textSearch('prompt', q, { type: 'websearch' })
+  if (pills.model) query = query.eq('model', pills.model)
+  if (pills.category) query = query.eq('primary_category', pills.category)
+  return query
     .order('sort_priority', { ascending: true })
     .order('views_count', { ascending: false })
     .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
+}
+
+async function fullTextSearch(query: string, page: number, pills: SearchPillState): Promise<Generation[]> {
+  const { data, error } = await buildFtQuery(query, page, pills)
+  if (error) throw error
+  return (data as Generation[]) ?? []
+}
+
+async function fetchTrending(pills: SearchPillState): Promise<Generation[]> {
+  let q = supabase.from('generations').select('*')
+  if (pills.model) q = q.eq('model', pills.model)
+  if (pills.category) q = q.eq('primary_category', pills.category)
+  const { data, error } = await q
+    .order('sort_priority', { ascending: true })
+    .order('views_count', { ascending: false })
+    .limit(PAGE_SIZE)
   if (error) throw error
   return (data as Generation[]) ?? []
 }
@@ -43,27 +118,130 @@ async function fullTextSearch(query: string, page: number): Promise<Generation[]
 function SearchContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const initialQuery = searchParams.get('q') ?? ''
+  const qParam = searchParams.get('q') ?? ''
 
-  const [inputValue, setInputValue] = useState(initialQuery)
-  const [query, setQuery] = useState(initialQuery)
+  const [inputValue, setInputValue] = useState(qParam)
+  const [pills, setPills] = useState<SearchPillState>(emptyPills)
+  const [sidebar, setSidebar] = useState<SearchSidebarState>(emptySidebar)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false)
 
-  // Semantic results
   const [semanticResults, setSemanticResults] = useState<SemanticResult[]>([])
-  // Full-text fallback results
   const [ftResults, setFtResults] = useState<Generation[]>([])
-
-  const [mode, setMode] = useState<SearchMode>('idle')
+  const [mode, setMode] = useState<ListMode>('idle')
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(false)
-  const [totalHint, setTotalHint] = useState<number | null>(null)
+  const [vibeMode, setVibeMode] = useState(false)
+  const [vibeSnapshot, setVibeSnapshot] = useState<{
+    semantic: SemanticResult[]
+    ft: Generation[]
+    mode: ListMode
+    page: number
+  } | null>(null)
+
+  const vibeModeRef = useRef(false)
+  useEffect(() => {
+    vibeModeRef.current = vibeMode
+  }, [vibeMode])
+
+  const [panelOpen, setPanelOpen] = useState(false)
+  const [panelIndex, setPanelIndex] = useState(0)
+  /** Prepended row when similar strip picks an image outside the filtered grid */
+  const [panelLeadItem, setPanelLeadItem] = useState<Generation | null>(null)
 
   const pageRef = useRef(0)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // "/" shortcut
+  useEffect(() => {
+    setInputValue(qParam)
+  }, [qParam])
+
+  const runMainFetch = useCallback(async () => {
+    if (vibeModeRef.current) return
+
+    const q = qParam.trim()
+    setLoading(true)
+    setSemanticResults([])
+    setFtResults([])
+    setHasMore(false)
+    pageRef.current = 0
+
+    try {
+      if (!q) {
+        const rows = await fetchTrending(pills)
+        setFtResults(rows)
+        setMode('trending')
+        setLoading(false)
+        return
+      }
+
+      try {
+        const semResults = await semanticSearch(q, { category: pills.category, model: pills.model, limit: PAGE_SIZE })
+        if (semResults.length > 0) {
+          setSemanticResults(semResults)
+          setMode('semantic')
+          setHasMore(true)
+          setLoading(false)
+          return
+        }
+      } catch (err) {
+        console.warn('Semantic search failed, using full-text:', err)
+      }
+
+      const rows = await fullTextSearch(q, 0, pills)
+      setFtResults(rows)
+      setMode('fulltext')
+      setHasMore(rows.length === PAGE_SIZE)
+    } catch (err) {
+      console.error(err)
+      setMode('idle')
+    }
+
+    setLoading(false)
+  }, [qParam, pills.model, pills.category])
+
+  useEffect(() => {
+    void runMainFetch()
+  }, [runMainFetch])
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || vibeModeRef.current) return
+    const q = qParam.trim()
+    if (!q) return
+
+    setLoadingMore(true)
+    pageRef.current += 1
+    try {
+      const rows = await fullTextSearch(q, pageRef.current, pills)
+      if (rows.length > 0) {
+        setFtResults((prev) => [...prev, ...rows])
+        setMode((m) => (m === 'semantic' ? 'fulltext' : m))
+      }
+      setHasMore(rows.length === PAGE_SIZE)
+    } catch (e) {
+      console.error(e)
+      setHasMore(false)
+    }
+    setLoadingMore(false)
+  }, [loadingMore, hasMore, qParam, pills])
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !loadingMore && !loading && qParam.trim() && !vibeModeRef.current) {
+          void loadMore()
+        }
+      },
+      { rootMargin: '400px' },
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasMore, loadingMore, loading, qParam, loadMore])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (
@@ -79,298 +257,251 @@ function SearchContent() {
     return () => document.removeEventListener('keydown', handler)
   }, [])
 
-  const runSearch = useCallback(async (q: string) => {
-    if (!q.trim()) {
-      setSemanticResults([])
-      setFtResults([])
-      setMode('idle')
-      setHasMore(false)
-      setTotalHint(null)
-      return
-    }
+  const baseResults = useMemo(() => mergeUnique(semanticResults, ftResults), [semanticResults, ftResults])
+  const filteredItems = useMemo(() => applySearchFilters(baseResults, pills, sidebar), [baseResults, pills, sidebar])
 
-    setLoading(true)
-    setSemanticResults([])
-    setFtResults([])
-    setHasMore(false)
-    setTotalHint(null)
-    pageRef.current = 0
+  const sidebarOnlyCount = useMemo(
+    () =>
+      sidebar.visual_style.length +
+      sidebar.lighting.length +
+      sidebar.mood.length +
+      sidebar.composition.length +
+      sidebar.camera_simulation.length,
+    [sidebar],
+  )
 
-    // 1. Try semantic search first
-    try {
-      const semResults = await semanticSearch(q)
-      if (semResults.length > 0) {
-        setSemanticResults(semResults)
-        setMode('semantic')
-        setTotalHint(semResults.length)
-        // Semantic results are one page only — load more falls back to full-text
-        setHasMore(true)
-        setLoading(false)
-        return
-      }
-    } catch (err) {
-      console.warn('Semantic search unavailable, falling back:', err)
-    }
+  const pillCount = useMemo(() => {
+    let n = 0
+    if (pills.model) n++
+    if (pills.category) n++
+    if (pills.aspect_ratio) n++
+    if (pills.visual_style) n++
+    return n
+  }, [pills])
 
-    // 2. Fall back to full-text search
-    try {
-      const rows = await fullTextSearch(q, 0)
-      setFtResults(rows)
-      setMode('fulltext')
-      setHasMore(rows.length === PAGE_SIZE)
-      setTotalHint(rows.length < PAGE_SIZE ? rows.length : null)
+  const totalActiveFilterCount = pillCount + sidebarOnlyCount
 
-      if (rows.length === PAGE_SIZE) {
-        supabase
-          .from('generations')
-          .select('id', { count: 'exact', head: true })
-          .textSearch('prompt', q, { type: 'websearch' })
-          .then(({ count }) => { if (count != null) setTotalHint(count) })
-      }
-    } catch (err) {
-      console.error('Full-text search failed:', err)
-    }
-
-    setLoading(false)
-  }, [])
-
-  const loadMore = useCallback(async (q: string) => {
-    if (loadingMore) return
-    setLoadingMore(true)
-    pageRef.current += 1
-
-    // More pages always use full-text (semantic is one-shot)
-    try {
-      const rows = await fullTextSearch(q, pageRef.current)
-      if (rows.length > 0) {
-        setFtResults((prev) => [...prev, ...rows])
-        // Only switch label once we actually have additional full-text rows to show
-        if (mode === 'semantic') setMode('fulltext')
-      }
-      setHasMore(rows.length === PAGE_SIZE)
-    } catch (err) {
-      console.error('Load more failed:', err)
-      setHasMore(false)
-    }
-
-    setLoadingMore(false)
-  }, [loadingMore, mode])
-
-  // Run on query change
-  useEffect(() => {
-    runSearch(query)
-  }, [query, runSearch])
-
-  // Infinite scroll — only after semantic page shown
-  useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading && mode !== 'idle') {
-          loadMore(query)
-        }
-      },
-      { rootMargin: '400px' },
-    )
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [hasMore, loadingMore, loading, query, mode, loadMore])
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const q = inputValue.trim()
-    if (!q || q === query) return
-    router.replace(`/search?q=${encodeURIComponent(q)}`)
-    setQuery(q)
+    if (vibeMode) {
+      setVibeMode(false)
+      setVibeSnapshot(null)
+    }
+    const next = inputValue.trim()
+    router.replace(next ? `/search?q=${encodeURIComponent(next)}` : '/search')
   }
 
-  const searched = query.trim().length > 0
-  const done = !loading && searched
-  const isSemantic = mode === 'semantic'
+  const clearAllFilters = () => {
+    setPills(emptyPills)
+    setSidebar(emptySidebar)
+  }
 
-  // Combined display list
-  const allImages: (SemanticResult | Generation)[] = isSemantic
-    ? [...semanticResults, ...ftResults]
-    : ftResults
-  const totalCount = allImages.length
+  const onTagFilter = (filter: 'primary_category' | 'visual_style' | 'lighting' | 'mood', value: string) => {
+    if (filter === 'primary_category') setPills((p) => ({ ...p, category: value }))
+    else if (filter === 'visual_style') setPills((p) => ({ ...p, visual_style: value }))
+    else if (filter === 'lighting')
+      setSidebar((s) => ({
+        ...s,
+        lighting: s.lighting.includes(value) ? s.lighting : [...s.lighting, value],
+      }))
+    else if (filter === 'mood')
+      setSidebar((s) => ({
+        ...s,
+        mood: s.mood.includes(value) ? s.mood : [...s.mood, value],
+      }))
+  }
+
+  const handleMoreLikeThis = async (item: SearchGridItem) => {
+    setVibeSnapshot({ semantic: semanticResults, ft: ftResults, mode, page: pageRef.current })
+    setVibeMode(true)
+    setLoading(true)
+    setHasMore(false)
+    try {
+      const results = await semanticSimilar(item.job_set_id, { category: pills.category, model: pills.model })
+      setSemanticResults(results)
+      setFtResults([])
+      setMode('semantic')
+    } catch (err) {
+      console.error(err)
+    }
+    setLoading(false)
+  }
+
+  const exitVibe = () => {
+    if (vibeSnapshot) {
+      setSemanticResults(vibeSnapshot.semantic)
+      setFtResults(vibeSnapshot.ft)
+      setMode(vibeSnapshot.mode)
+      pageRef.current = vibeSnapshot.page
+    }
+    setVibeMode(false)
+    setVibeSnapshot(null)
+  }
+
+  const flatForPanel = filteredItems
+  const panelFlatItems = useMemo(() => {
+    if (!panelLeadItem) return flatForPanel
+    if (flatForPanel.some((x) => x.job_set_id === panelLeadItem.job_set_id)) return flatForPanel
+    return [panelLeadItem, ...flatForPanel]
+  }, [flatForPanel, panelLeadItem])
+
+  const displayedGen = panelOpen ? panelFlatItems[panelIndex] ?? null : null
+
+  const openPanel = (item: SearchGridItem) => {
+    setPanelLeadItem(null)
+    const idx = filteredItems.findIndex((x) => x.job_set_id === item.job_set_id)
+    setPanelIndex(idx >= 0 ? idx : 0)
+    setPanelOpen(true)
+  }
+
+  const showTrendingHint = !qParam.trim() && !vibeMode
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md">
-        <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center gap-4">
-          <a href="/" className="text-lg font-bold text-white shrink-0">
-            Prompt<span className="text-sky-400">Lens</span>
-          </a>
-          <span className="text-zinc-700 hidden sm:block">|</span>
-          <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
-            <a href="/browse" className="hover:text-white transition-colors">Browse</a>
-            <a href="/glossary" className="hover:text-white transition-colors">Glossary</a>
-            <a href="/analytics" className="hover:text-white transition-colors">Analytics</a>
-            <a href="/templates" className="hover:text-white transition-colors">Templates</a>
-            <a href="/builder" className="hover:text-white transition-colors">Builder</a>
-            <a href="/library" className="hover:text-white transition-colors">Library</a>
-          </nav>
-          <div className="ml-auto flex items-center gap-2">
-            <NavAuthButton />
-            <MobileNav />
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col bg-[#0A0A0A] text-white">
+      <TopNav />
+      <SearchStickyFilterBar
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        onSearchSubmit={handleSearchSubmit}
+        inputRef={inputRef}
+        pills={pills}
+        setPills={setPills}
+        showClearAll={totalActiveFilterCount > 0}
+        onClearAll={clearAllFilters}
+        onOpenMobileFilters={() => setMobileFiltersOpen(true)}
+        mobileActiveCount={totalActiveFilterCount}
+      />
 
-      <div className="max-w-screen-xl mx-auto px-4 py-8 w-full flex-1 flex flex-col">
-        {/* Search bar */}
-        <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto mb-6">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-sky-400 transition-colors pointer-events-none" />
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Search prompts... e.g. woman in golden hour with bokeh"
-              autoFocus
-              className="w-full bg-zinc-900 border border-zinc-700 focus:border-sky-400 text-white placeholder-zinc-500 rounded-xl pl-12 pr-4 sm:pr-28 py-4 text-sm outline-none transition-colors focus:ring-2 focus:ring-sky-500/15"
+      <div className="flex min-h-0 flex-1">
+        {!desktopSidebarCollapsed && (
+          <aside className="scrollbar-thin hidden w-[240px] shrink-0 flex-col border-r border-white/[0.06] bg-[rgba(255,255,255,0.02)] lg:flex">
+            <SearchFilterSidebar
+              variant="desktop"
+              sidebar={sidebar}
+              setSidebar={setSidebar}
+              baseResults={baseResults}
+              activeFilterCount={sidebarOnlyCount}
+              onToggleDesktopCollapse={() => setDesktopSidebarCollapsed(true)}
             />
-            <button
-              type="submit"
-              disabled={!inputValue.trim()}
-              className="hidden sm:block absolute right-2 top-1/2 -translate-y-1/2 bg-sky-500 hover:bg-sky-400 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-            >
-              Search
-            </button>
-          </div>
+          </aside>
+        )}
+        {desktopSidebarCollapsed && (
           <button
-            type="submit"
-            disabled={!inputValue.trim()}
-            className="sm:hidden w-full py-3 bg-sky-500 hover:bg-sky-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+            type="button"
+            onClick={() => setDesktopSidebarCollapsed(false)}
+            className="hidden w-11 shrink-0 flex-col items-center gap-1 border-r border-white/[0.06] bg-[rgba(255,255,255,0.02)] py-4 text-white/50 transition-colors hover:bg-white/[0.04] hover:text-white/80 lg:flex"
+            title="Show filters"
           >
-            Search
+            <Filter className="h-4 w-4" />
+            {totalActiveFilterCount > 0 && (
+              <span className="rounded-full bg-red-600/30 px-1.5 text-[10px] text-red-200">{totalActiveFilterCount}</span>
+            )}
+            <span className="text-[10px] leading-tight">Filters</span>
           </button>
-        </form>
-
-        {/* Result meta row */}
-        {done && totalCount > 0 && (
-          <div className="flex items-center gap-3 mb-5">
-            {isSemantic && (
-              <span className="flex items-center gap-1.5 text-xs bg-sky-500/15 text-sky-300 border border-sky-500/25 rounded-full px-3 py-1">
-                <Sparkles className="w-3 h-3" />
-                Semantic search
-              </span>
-            )}
-            <p className="text-sm text-zinc-500">
-              {totalHint != null ? (
-                <>
-                  <span className="text-white font-medium">{totalHint.toLocaleString()}</span>{' '}
-                  result{totalHint !== 1 ? 's' : ''} for{' '}
-                </>
-              ) : (
-                <>Showing results for </>
-              )}
-              <span className="text-sky-400">&ldquo;{query}&rdquo;</span>
-            </p>
-          </div>
         )}
 
-        {/* Loading skeleton */}
-        {loading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <ImageCardSkeleton key={i} />
-            ))}
-          </div>
-        )}
-
-        {/* Empty state — only show when truly no results from either search path */}
-        {done && !loadingMore && totalCount === 0 && (
-          <div className="flex flex-col items-center justify-center py-32 text-center flex-1">
-            <Frown className="w-12 h-12 text-zinc-700 mb-4" />
-            <p className="text-zinc-300 text-lg font-medium mb-2">No results found</p>
-            <p className="text-zinc-500 text-sm mb-6">
-              Nothing matched{' '}
-              <span className="text-sky-400">&ldquo;{query}&rdquo;</span>.
-              Try different or simpler keywords.
+        <div className="min-w-0 flex-1">
+          {showTrendingHint && (
+            <p className="border-b border-white/[0.04] px-4 py-2 text-center text-xs text-white/40">
+              Editor&apos;s picks — originals first by sort priority
             </p>
-            <div className="flex gap-3">
-              <a
-                href="/browse"
-                className="text-sm bg-sky-500 hover:bg-sky-400 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Browse all images
+          )}
+          {qParam.trim() && !vibeMode && mode === 'semantic' && (
+            <p className="flex items-center justify-center gap-2 border-b border-white/[0.04] px-4 py-2 text-xs text-white/50">
+              <Sparkles className="h-3.5 w-3.5 text-red-400/80" />
+              Semantic results for &ldquo;{qParam}&rdquo;
+            </p>
+          )}
+
+          <SearchResultsGrid
+            items={filteredItems}
+            loading={loading}
+            loadingMore={loadingMore}
+            onOpenCard={openPanel}
+            onTagFilter={onTagFilter}
+            onMoreLikeThis={handleMoreLikeThis}
+            sentinelRef={sentinelRef}
+            vibeMode={vibeMode}
+            onExitVibe={exitVibe}
+          />
+
+          {!loading && filteredItems.length === 0 && baseResults.length > 0 && (
+            <div className="px-4 pb-8 text-center text-sm text-white/45">Adjust filters to see more results.</div>
+          )}
+
+          {!loading && baseResults.length === 0 && qParam.trim() && (
+            <div className="flex flex-col items-center py-24 text-center">
+              <Frown className="mb-4 h-12 w-12 text-white/20" />
+              <p className="text-white/70">No results</p>
+              <a href="/browse" className="mt-4 text-sm text-red-300/90 hover:text-red-200">
+                Browse all
               </a>
-              <button
-                onClick={() => { setInputValue(''); setQuery('') }}
-                className="text-sm border border-zinc-700 hover:border-zinc-500 text-zinc-300 px-4 py-2 rounded-lg transition-colors"
-              >
-                Clear search
-              </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Results grid */}
-        {!loading && totalCount > 0 && (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {/* Semantic results */}
-              {semanticResults.map((result, i) => (
-                <SemanticImageCard
-                  key={`sem-${result.id}`}
-                  result={result}
-                  priority={i < 6}
-                  sizes={GRID_SIZES}
-                />
-              ))}
-              {/* Full-text fallback / load-more results */}
-              {ftResults.map((image, i) => (
-                <ImageCard
-                  key={`ft-${image.id}`}
-                  image={image}
-                  priority={semanticResults.length === 0 && i < 6}
-                  sizes={GRID_SIZES}
-                />
-              ))}
-              {loadingMore &&
-                Array.from({ length: 6 }).map((_, i) => (
-                  <ImageCardSkeleton key={`more-${i}`} />
-                ))}
+          {!loading && baseResults.length === 0 && !qParam.trim() && !vibeMode && (
+            <div className="flex flex-col items-center py-16 text-center text-sm text-white/40">
+              Nothing to show yet. Try a search above.
             </div>
-
-            <div ref={sentinelRef} className="h-1" />
-
-            {!hasMore && (
-              <p className="text-center text-zinc-600 text-sm py-10">
-                {totalCount.toLocaleString()} results &middot; end of results
-              </p>
-            )}
-          </>
-        )}
-
-        {/* No query yet */}
-        {!searched && !loading && (
-          <div className="flex flex-col items-center justify-center py-32 text-center flex-1">
-            <div className="w-14 h-14 rounded-full bg-sky-500/10 flex items-center justify-center mb-4">
-              <Sparkles className="w-6 h-6 text-sky-400" />
-            </div>
-            <p className="text-zinc-300 text-sm font-medium mb-1">Semantic search powered by AI</p>
-            <p className="text-zinc-600 text-xs">
-              Try natural language: &ldquo;dark moody product shot on marble&rdquo;
-            </p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      {mobileFiltersOpen && (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            aria-label="Close filters"
+            onClick={() => setMobileFiltersOpen(false)}
+          />
+          <aside className="fixed inset-y-0 left-0 z-50 flex w-[min(100vw,280px)] flex-col border-r border-white/[0.06] bg-[#0f0f0f] lg:hidden">
+            <SearchFilterSidebar
+              variant="mobile"
+              sidebar={sidebar}
+              setSidebar={setSidebar}
+              baseResults={baseResults}
+              activeFilterCount={sidebarOnlyCount}
+              onCloseMobile={() => setMobileFiltersOpen(false)}
+            />
+          </aside>
+        </>
+      )}
+
+      <ImageSlidePanel
+        open={panelOpen}
+        gen={displayedGen}
+        onClose={() => {
+          setPanelOpen(false)
+          setPanelLeadItem(null)
+        }}
+        flatItems={panelFlatItems}
+        index={panelIndex}
+        onNavigate={setPanelIndex}
+        onPickSimilar={(g) => {
+          const i = flatForPanel.findIndex((x) => x.job_set_id === g.job_set_id)
+          if (i >= 0) {
+            setPanelLeadItem(null)
+            setPanelIndex(i)
+          } else {
+            setPanelLeadItem(g)
+            setPanelIndex(0)
+          }
+        }}
+      />
     </div>
   )
 }
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#0A0A0A]">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+        </div>
+      }
+    >
       <SearchContent />
     </Suspense>
   )

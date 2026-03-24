@@ -72,3 +72,28 @@ body {
 .animate-hero-cursor-blink {
   animation: hero-cursor-blink 1.2s step-end infinite;
 }
+
+/* Search results masonry */
+.search-masonry {
+  column-count: 2;
+  column-gap: 8px;
+}
+@media (min-width: 768px) {
+  .search-masonry {
+    column-count: 3;
+  }
+}
+@media (min-width: 1024px) {
+  .search-masonry {
+    column-count: 4;
+  }
+}
+@media (min-width: 1280px) {
+  .search-masonry {
+    column-count: 5;
+  }
+}
+.search-masonry > * {
+  break-inside: avoid;
+  margin-bottom: 8px;
+}
