@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { Search, Mountain } from 'lucide-react'
 
@@ -17,7 +16,7 @@ function padGridUrls(urls: string[], count: number): string[] {
 function OrBadge({ className, mobile }: { className?: string; mobile?: boolean }) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-full border border-white/[0.15] bg-[rgba(20,20,20,0.7)] text-[13px] font-medium text-white/40 shadow-[0_0_20px_rgba(0,0,0,0.5)] backdrop-blur-[12px] ${
+      className={`relative z-[40] flex shrink-0 items-center justify-center rounded-full border border-white/[0.15] bg-[rgba(20,20,20,0.7)] text-[13px] font-medium text-white/40 shadow-[0_0_20px_rgba(0,0,0,0.5)] backdrop-blur-[12px] ${
         mobile ? 'h-11 w-11' : 'h-12 w-12'
       } ${className ?? ''}`}
     >
@@ -31,31 +30,33 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
 
   return (
     <section className="relative flex min-h-0 flex-1 flex-col md:flex-row md:min-h-[calc(90vh-3.5rem)]">
-      {/* Background: image grid + radial vignette */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="animate-hero-drift grid h-full min-h-full w-full grid-cols-4 grid-rows-3 gap-1 p-1 opacity-[0.12] md:grid-cols-6 md:grid-rows-3">
+      {/* z-0 stack: drifting image grid + radial vignette (below all panes) */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+        aria-hidden
+      >
+        <div className="animate-hero-drift relative z-0 grid h-full min-h-full w-full grid-cols-4 grid-rows-3 gap-1 p-1 opacity-[0.12] md:grid-cols-6 md:grid-rows-3">
           {cells.map((url, i) => (
             <div
               key={`${url}-${i}`}
               className={`relative min-h-0 overflow-hidden ${i >= 12 ? 'hidden md:block' : ''}`}
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={url}
                 alt=""
-                fill
-                className="object-cover"
-                sizes="(max-width: 767px) 28vw, 20vw"
+                className="absolute inset-0 h-full w-full object-cover"
                 loading="lazy"
-                unoptimized
+                decoding="async"
               />
             </div>
           ))}
         </div>
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 z-[1]"
           style={{
             background:
-              'radial-gradient(ellipse at center, rgba(0,0,0,0.95) 30%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.3) 100%)',
+              'radial-gradient(ellipse at center, rgba(0,0,0,0.9) 25%, rgba(0,0,0,0.5) 65%, rgba(0,0,0,0.2) 100%)',
           }}
         />
       </div>
@@ -63,16 +64,16 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
       {/* Left pane — search journey */}
       <Link
         href="/search"
-        className="group relative z-10 flex min-h-[45vh] flex-1 flex-col justify-center border-b border-white/[0.06] px-6 py-10 transition-[flex] duration-500 ease-in-out hover:flex-[1.12] md:min-h-0 md:border-b-0 md:py-16 md:hover:flex-[1.12] active:scale-[0.995]"
+        className="group relative z-[20] flex min-h-[45vh] flex-1 flex-col justify-center border-b border-white/[0.06] px-6 py-10 transition-[flex] duration-500 ease-in-out hover:flex-[1.12] md:min-h-0 md:border-b-0 md:py-16 md:hover:flex-[1.12] active:scale-[0.995]"
       >
         <div
-          className="pointer-events-none absolute inset-0 z-0"
+          className="pointer-events-none absolute inset-0 z-[2]"
           style={{
             background:
-              'linear-gradient(160deg, rgba(30,8,8,0.85) 0%, rgba(15,4,4,0.92) 50%, rgba(10,5,5,0.97) 85%)',
+              'linear-gradient(160deg, rgba(30,8,8,0.7) 0%, rgba(15,4,4,0.85) 50%, rgba(10,5,5,0.93) 85%)',
           }}
         />
-        <div className="relative z-10 mr-auto flex w-full max-w-[440px] flex-col pl-[clamp(2rem,5vw,4rem)] pr-2">
+        <div className="relative z-[30] ml-auto flex w-full max-w-[440px] flex-col pl-6 pr-8 md:pl-8 md:pr-12">
           <div className="rounded-xl border border-[rgba(220,38,38,0.25)] bg-[rgba(220,38,38,0.08)] px-[18px] py-4 transition-colors group-hover:border-[rgba(220,38,38,0.4)]">
             <div className="flex items-center gap-3">
               <Search
@@ -122,20 +123,20 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
             Find my prompt →
           </span>
         </div>
-        <span className="absolute bottom-4 right-4 z-10 text-xs text-[rgba(255,120,120,0.3)] md:bottom-6 md:right-6">
+        <span className="absolute bottom-4 right-4 z-[30] text-xs text-[rgba(255,120,120,0.3)] md:bottom-6 md:right-6">
           {promptsIndexed.toLocaleString()} prompts indexed
         </span>
       </Link>
 
       {/* Mobile divider + or */}
-      <div className="relative z-20 flex h-14 shrink-0 items-center justify-center bg-[#060606] md:hidden">
+      <div className="relative z-[40] flex h-14 shrink-0 items-center justify-center bg-[#060606] md:hidden">
         <div className="absolute inset-x-4 top-1/2 h-px -translate-y-1/2 bg-white/[0.06]" />
-        <OrBadge mobile className="relative z-10" />
+        <OrBadge mobile className="relative z-[40]" />
       </div>
 
       {/* Desktop vertical divider + or */}
-      <div className="relative z-20 hidden w-px shrink-0 self-stretch bg-white/[0.06] md:block md:min-h-[calc(90vh-3.5rem)]">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div className="relative z-[40] hidden w-px shrink-0 self-stretch bg-white/[0.06] md:block md:min-h-[calc(90vh-3.5rem)]">
+        <div className="absolute left-1/2 top-1/2 z-[40] -translate-x-1/2 -translate-y-1/2">
           <OrBadge />
         </div>
       </div>
@@ -143,16 +144,16 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
       {/* Right pane — builder */}
       <Link
         href="/builder"
-        className="group relative z-10 flex min-h-[45vh] flex-1 flex-col justify-center px-6 py-10 transition-[flex] duration-500 ease-in-out hover:flex-[1.12] md:min-h-0 md:py-16 md:hover:flex-[1.12] active:scale-[0.995]"
+        className="group relative z-[20] flex min-h-[45vh] flex-1 flex-col justify-center px-6 py-10 transition-[flex] duration-500 ease-in-out hover:flex-[1.12] md:min-h-0 md:py-16 md:hover:flex-[1.12] active:scale-[0.995]"
       >
         <div
-          className="pointer-events-none absolute inset-0 z-0"
+          className="pointer-events-none absolute inset-0 z-[2]"
           style={{
             background:
-              'linear-gradient(160deg, rgba(10,10,10,0.85) 0%, rgba(8,8,8,0.92) 50%, rgba(6,6,6,0.97) 85%)',
+              'linear-gradient(160deg, rgba(10,10,10,0.7) 0%, rgba(8,8,8,0.85) 50%, rgba(6,6,6,0.93) 85%)',
           }}
         />
-        <div className="relative z-10 ml-auto flex w-full max-w-[440px] flex-col pr-[clamp(2rem,5vw,4rem)] pl-2">
+        <div className="relative z-[30] mr-auto flex w-full max-w-[440px] flex-col pl-8 pr-6 md:pl-12 md:pr-8">
           <div className="flex flex-col gap-2">
             {[
               'Pick a category',
@@ -208,7 +209,7 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
             Start building →
           </span>
         </div>
-        <span className="absolute bottom-4 right-4 z-10 text-xs text-white/[0.18] md:bottom-6 md:right-6">
+        <span className="absolute bottom-4 right-4 z-[30] text-xs text-white/[0.18] md:bottom-6 md:right-6">
           5 steps to your prompt
         </span>
       </Link>
