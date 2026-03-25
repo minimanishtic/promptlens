@@ -36,11 +36,24 @@ interface Props {
   onMoreLikeThis: (item: SearchGridItem) => void
 }
 
+function imageAspectRatio(item: SearchGridItem): number {
+  const w = item.width
+  const h = item.height
+  if (typeof w === 'number' && typeof h === 'number' && w > 0 && h > 0) return w / h
+  return 0.75
+}
+
 export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeThis }: Props) {
   const thumb = generationThumbnailUrl(item)
   const { user, openAuth } = useAuth()
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
+  const aspectRatio = imageAspectRatio(item)
+
+  useEffect(() => {
+    setImgLoaded(false)
+  }, [item.id, thumb])
 
   useEffect(() => {
     if (!user) {
@@ -127,8 +140,20 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
       }}
       className="group relative cursor-pointer overflow-hidden rounded-lg border border-white/[0.06] outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={thumb} alt="" className="block h-auto w-full" loading="lazy" decoding="async" />
+      <div
+        className="relative w-full overflow-hidden bg-white/[0.04]"
+        style={{ aspectRatio }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={thumb}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setImgLoaded(true)}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ease-out ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+        />
+      </div>
 
       {/* Mobile: always copy + model hint */}
       <button

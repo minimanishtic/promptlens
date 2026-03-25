@@ -92,6 +92,9 @@ function SearchContent() {
 
   const sentinelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  /** Bumps on each main list fetch so stale responses and in-flight loadMore cannot overwrite. */
+  const mainListGenRef = useRef(0)
+  const vibeFetchIdRef = useRef(0)
 
   useEffect(() => {
     setInputValue(qParam)
@@ -116,6 +119,7 @@ function SearchContent() {
   const runMainFetch = useCallback(async () => {
     if (vibeModeRef.current) return
 
+    const gen = ++mainListGenRef.current
     setLoading(true)
     setItems([])
     setHasMore(false)
@@ -128,6 +132,7 @@ function SearchContent() {
           .order('views_count', { ascending: false })
           .range(0, PAGE_SIZE - 1)
         if (error) throw error
+        if (gen !== mainListGenRef.current) return
         const rows = (data as Generation[]) ?? []
         setItems(rows)
         setHasMore(rows.length === PAGE_SIZE)
@@ -148,6 +153,7 @@ function SearchContent() {
         error?: string
       }
       if (!semRes.ok) throw new Error(semJson.error || `API ${semRes.status}`)
+      if (gen !== mainListGenRef.current) return
 
       if (semJson.results && semJson.results.length > 0) {
         setItems(semJson.results)
@@ -166,16 +172,19 @@ function SearchContent() {
         .order('views_count', { ascending: false })
         .range(0, PAGE_SIZE - 1)
       if (ftErr) throw ftErr
+      if (gen !== mainListGenRef.current) return
       const ftRows = (ftData as Generation[]) ?? []
       setItems(ftRows)
       setHasMore(ftRows.length === PAGE_SIZE)
       setDataSource('fulltext')
     } catch (err) {
       console.error(err)
-      setItems([])
-      setDataSource('trending')
+      if (gen === mainListGenRef.current) {
+        setItems([])
+        setDataSource('trending')
+      }
     } finally {
-      setLoading(false)
+      if (gen === mainListGenRef.current) setLoading(false)
     }
   }, [qParam, pills, sidebar])
 
@@ -185,6 +194,8 @@ function SearchContent() {
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore || vibeModeRef.current) return
+
+    const listGen = mainListGenRef.current
 
     if (!qParam.trim()) {
       setLoadingMore(true)
@@ -196,12 +207,13 @@ function SearchContent() {
           .order('views_count', { ascending: false })
           .range(offset, offset + PAGE_SIZE - 1)
         if (error) throw error
+        if (listGen !== mainListGenRef.current) return
         const rows = (data as Generation[]) ?? []
         if (rows.length > 0) setItems((prev) => [...prev, ...rows])
         setHasMore(rows.length === PAGE_SIZE)
       } catch (e) {
         console.error(e)
-        setHasMore(false)
+        if (listGen === mainListGenRef.current) setHasMore(false)
       } finally {
         setLoadingMore(false)
       }
@@ -223,12 +235,13 @@ function SearchContent() {
           ),
         })
         const json = (await res.json()) as { results?: SemanticResult[]; hasMore?: boolean }
+        if (listGen !== mainListGenRef.current) return
         const next = json.results ?? []
         if (next.length > 0) setItems((prev) => [...prev, ...next])
         setHasMore(!!json.hasMore)
       } catch (e) {
         console.error(e)
-        setHasMore(false)
+        if (listGen === mainListGenRef.current) setHasMore(false)
       } finally {
         setLoadingMore(false)
       }
@@ -248,12 +261,13 @@ function SearchContent() {
         .order('views_count', { ascending: false })
         .range(offset, offset + PAGE_SIZE - 1)
       if (error) throw error
+      if (listGen !== mainListGenRef.current) return
       const rows = (data as Generation[]) ?? []
       if (rows.length > 0) setItems((prev) => [...prev, ...rows])
       setHasMore(rows.length === PAGE_SIZE)
     } catch (e) {
       console.error(e)
-      setHasMore(false)
+      if (listGen === mainListGenRef.current) setHasMore(false)
     } finally {
       setLoadingMore(false)
     }
@@ -341,9 +355,11 @@ function SearchContent() {
   }
 
   const handleMoreLikeThis = async (item: SearchGridItem) => {
+    const vf = ++vibeFetchIdRef.current
     setVibeSnapshot({ items: [...items], dataSource, hasMore })
     setVibeMode(true)
     setLoading(true)
+    setItems([])
     setHasMore(false)
     try {
       const res = await fetch('/api/search', {
@@ -360,13 +376,14 @@ function SearchContent() {
       })
       const json = (await res.json()) as { results?: SemanticResult[]; hasMore?: boolean; error?: string }
       if (!res.ok) throw new Error(json.error || String(res.status))
+      if (vf !== vibeFetchIdRef.current) return
       setItems(json.results ?? [])
       setHasMore(!!json.hasMore)
       setDataSource('semantic')
     } catch (err) {
       console.error(err)
     } finally {
-      setLoading(false)
+      if (vf === vibeFetchIdRef.current) setLoading(false)
     }
   }
 

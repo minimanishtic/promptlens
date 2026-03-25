@@ -16,6 +16,8 @@ interface Props {
   onExitVibe: () => void
 }
 
+const SKELETON_PLACEHOLDERS = 20
+
 export default function SearchResultsGrid({
   items,
   loading,
@@ -27,13 +29,7 @@ export default function SearchResultsGrid({
   vibeMode,
   onExitVibe,
 }: Props) {
-  if (loading) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-white/30" />
-      </div>
-    )
-  }
+  const showMasonrySkeleton = !!loading && items.length === 0
 
   return (
     <div className="min-h-0 flex-1 px-3 pb-12 pt-2 md:px-4">
@@ -47,10 +43,22 @@ export default function SearchResultsGrid({
         </button>
       )}
 
-      {items.length === 0 ? (
-        <p className="py-20 text-center text-sm text-white/40">No images match your filters.</p>
+      {showMasonrySkeleton ? (
+        <div className="search-masonry" aria-busy="true" aria-label="Loading results">
+          {Array.from({ length: SKELETON_PLACEHOLDERS }).map((_, i) => (
+            <div
+              key={i}
+              className="animate-pulse rounded-lg bg-white/[0.03]"
+              style={{ height: 200 + (i % 6) * 28 }}
+            />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        !loading && <p className="py-20 text-center text-sm text-white/40">No images match your filters.</p>
       ) : (
-        <div className="search-masonry">
+        <div
+          className={`search-masonry transition-opacity duration-300 ease-out ${loadingMore ? 'opacity-80' : 'opacity-100'}`}
+        >
           {items.map((item) => (
             <SearchAssetCard
               key={item.id}
