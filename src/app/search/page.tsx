@@ -16,7 +16,7 @@ import { supabase } from '@/lib/supabase'
 import type { Generation } from '@/types/database'
 import type { SemanticResult } from '@/app/api/search/route'
 import {
-  applySearchFilters,
+  applySearchFiltersToQuery,
   type SearchGridItem,
   type SearchPillState,
   type SearchSidebarState,
@@ -25,95 +25,35 @@ import type { SearchGlobalFilterCounts } from '@/lib/search-global-filter-counts
 
 const PAGE_SIZE = 50
 
-type ListMode = 'idle' | 'trending' | 'semantic' | 'fulltext'
+type DataSource = 'trending' | 'semantic' | 'fulltext'
 
-function mergeUnique(semantic: SemanticResult[], ft: Generation[]): SearchGridItem[] {
-  const seen = new Set<string>()
-  const out: SearchGridItem[] = []
-  for (const r of semantic) {
-    if (!seen.has(r.job_set_id)) {
-      seen.add(r.job_set_id)
-      out.push(r)
-    }
+function buildSearchPostBody(
+  pills: SearchPillState,
+  sidebar: SearchSidebarState,
+  opts: {
+    query?: string
+    similar_job_set_id?: string
+    offset?: number
+    limit?: number
+    threshold?: number
+  },
+) {
+  return {
+    ...(opts.query ? { query: opts.query } : {}),
+    ...(opts.similar_job_set_id ? { similar_job_set_id: opts.similar_job_set_id } : {}),
+    ...(opts.threshold != null ? { threshold: opts.threshold } : {}),
+    model: pills.model ?? undefined,
+    category: pills.category ?? undefined,
+    aspect_ratio: pills.aspect_ratio ?? undefined,
+    visual_style: pills.visual_style ?? undefined,
+    sidebar_visual_style: sidebar.visual_style,
+    sidebar_lighting: sidebar.lighting,
+    sidebar_mood: sidebar.mood,
+    sidebar_composition: sidebar.composition,
+    sidebar_camera_simulation: sidebar.camera_simulation,
+    offset: opts.offset ?? 0,
+    limit: opts.limit ?? PAGE_SIZE,
   }
-  for (const r of ft) {
-    if (!seen.has(r.job_set_id)) {
-      seen.add(r.job_set_id)
-      out.push(r)
-    }
-  }
-  return out
-}
-
-async function semanticSearch(
-  query: string,
-  opts: { category?: string | null; model?: string | null; limit?: number },
-): Promise<SemanticResult[]> {
-  const res = await fetch('/api/search', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query,
-      limit: opts.limit ?? PAGE_SIZE,
-      threshold: 0.5,
-      category: opts.category || undefined,
-      model: opts.model || undefined,
-    }),
-  })
-  if (!res.ok) throw new Error(`API error ${res.status}`)
-  const json = (await res.json()) as { results: SemanticResult[] }
-  return json.results ?? []
-}
-
-async function semanticSimilar(
-  jobSetId: string,
-  opts: { category?: string | null; model?: string | null },
-): Promise<SemanticResult[]> {
-  const res = await fetch('/api/search', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      similar_job_set_id: jobSetId,
-      limit: PAGE_SIZE,
-      threshold: 0.45,
-      category: opts.category || undefined,
-      model: opts.model || undefined,
-    }),
-  })
-  if (!res.ok) throw new Error(`API error ${res.status}`)
-  const json = (await res.json()) as { results: SemanticResult[] }
-  return json.results ?? []
-}
-
-function buildFtQuery(q: string, page: number, pills: SearchPillState) {
-  let query = supabase
-    .from('generations')
-    .select('*')
-    .textSearch('prompt', q, { type: 'websearch' })
-  if (pills.model) query = query.eq('model', pills.model)
-  if (pills.category) query = query.eq('primary_category', pills.category)
-  return query
-    .order('sort_priority', { ascending: true })
-    .order('views_count', { ascending: false })
-    .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
-}
-
-async function fullTextSearch(query: string, page: number, pills: SearchPillState): Promise<Generation[]> {
-  const { data, error } = await buildFtQuery(query, page, pills)
-  if (error) throw error
-  return (data as Generation[]) ?? []
-}
-
-async function fetchTrending(pills: SearchPillState): Promise<Generation[]> {
-  let q = supabase.from('generations').select('*')
-  if (pills.model) q = q.eq('model', pills.model)
-  if (pills.category) q = q.eq('primary_category', pills.category)
-  const { data, error } = await q
-    .order('sort_priority', { ascending: true })
-    .order('views_count', { ascending: false })
-    .limit(PAGE_SIZE)
-  if (error) throw error
-  return (data as Generation[]) ?? []
 }
 
 function SearchContent() {
@@ -128,18 +68,17 @@ function SearchContent() {
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false)
   const [globalFilterCounts, setGlobalFilterCounts] = useState<SearchGlobalFilterCounts | null>(null)
 
-  const [semanticResults, setSemanticResults] = useState<SemanticResult[]>([])
-  const [ftResults, setFtResults] = useState<Generation[]>([])
-  const [mode, setMode] = useState<ListMode>('idle')
+  const [items, setItems] = useState<SearchGridItem[]>([])
+  const [dataSource, setDataSource] = useState<DataSource>('trending')
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(false)
+
   const [vibeMode, setVibeMode] = useState(false)
   const [vibeSnapshot, setVibeSnapshot] = useState<{
-    semantic: SemanticResult[]
-    ft: Generation[]
-    mode: ListMode
-    page: number
+    items: SearchGridItem[]
+    dataSource: DataSource
+    hasMore: boolean
   } | null>(null)
 
   const vibeModeRef = useRef(false)
@@ -149,10 +88,8 @@ function SearchContent() {
 
   const [panelOpen, setPanelOpen] = useState(false)
   const [panelIndex, setPanelIndex] = useState(0)
-  /** Prepended row when similar strip picks an image outside the filtered grid */
   const [panelLeadItem, setPanelLeadItem] = useState<Generation | null>(null)
 
-  const pageRef = useRef(0)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -179,46 +116,68 @@ function SearchContent() {
   const runMainFetch = useCallback(async () => {
     if (vibeModeRef.current) return
 
-    const q = qParam.trim()
     setLoading(true)
-    setSemanticResults([])
-    setFtResults([])
+    setItems([])
     setHasMore(false)
-    pageRef.current = 0
 
     try {
-      if (!q) {
-        const rows = await fetchTrending(pills)
-        setFtResults(rows)
-        setMode('trending')
-        setLoading(false)
+      if (!qParam.trim()) {
+        let q = applySearchFiltersToQuery(supabase.from('generations').select('*'), pills, sidebar)
+        const { data, error } = await q
+          .order('sort_priority', { ascending: true })
+          .order('views_count', { ascending: false })
+          .range(0, PAGE_SIZE - 1)
+        if (error) throw error
+        const rows = (data as Generation[]) ?? []
+        setItems(rows)
+        setHasMore(rows.length === PAGE_SIZE)
+        setDataSource('trending')
         return
       }
 
-      try {
-        const semResults = await semanticSearch(q, { category: pills.category, model: pills.model, limit: PAGE_SIZE })
-        if (semResults.length > 0) {
-          setSemanticResults(semResults)
-          setMode('semantic')
-          setHasMore(true)
-          setLoading(false)
-          return
-        }
-      } catch (err) {
-        console.warn('Semantic search failed, using full-text:', err)
+      const semRes = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          buildSearchPostBody(pills, sidebar, { query: qParam.trim(), offset: 0, limit: PAGE_SIZE }),
+        ),
+      })
+      const semJson = (await semRes.json()) as {
+        results?: SemanticResult[]
+        hasMore?: boolean
+        error?: string
+      }
+      if (!semRes.ok) throw new Error(semJson.error || `API ${semRes.status}`)
+
+      if (semJson.results && semJson.results.length > 0) {
+        setItems(semJson.results)
+        setHasMore(!!semJson.hasMore)
+        setDataSource('semantic')
+        return
       }
 
-      const rows = await fullTextSearch(q, 0, pills)
-      setFtResults(rows)
-      setMode('fulltext')
-      setHasMore(rows.length === PAGE_SIZE)
+      let fq = supabase
+        .from('generations')
+        .select('*')
+        .textSearch('prompt', qParam.trim(), { type: 'websearch' })
+      fq = applySearchFiltersToQuery(fq, pills, sidebar)
+      const { data: ftData, error: ftErr } = await fq
+        .order('sort_priority', { ascending: true })
+        .order('views_count', { ascending: false })
+        .range(0, PAGE_SIZE - 1)
+      if (ftErr) throw ftErr
+      const ftRows = (ftData as Generation[]) ?? []
+      setItems(ftRows)
+      setHasMore(ftRows.length === PAGE_SIZE)
+      setDataSource('fulltext')
     } catch (err) {
       console.error(err)
-      setMode('idle')
+      setItems([])
+      setDataSource('trending')
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
-  }, [qParam, pills.model, pills.category])
+  }, [qParam, pills, sidebar])
 
   useEffect(() => {
     void runMainFetch()
@@ -226,31 +185,86 @@ function SearchContent() {
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore || vibeModeRef.current) return
-    const q = qParam.trim()
-    if (!q) return
+
+    if (!qParam.trim()) {
+      setLoadingMore(true)
+      try {
+        const offset = items.length
+        let q = applySearchFiltersToQuery(supabase.from('generations').select('*'), pills, sidebar)
+        const { data, error } = await q
+          .order('sort_priority', { ascending: true })
+          .order('views_count', { ascending: false })
+          .range(offset, offset + PAGE_SIZE - 1)
+        if (error) throw error
+        const rows = (data as Generation[]) ?? []
+        if (rows.length > 0) setItems((prev) => [...prev, ...rows])
+        setHasMore(rows.length === PAGE_SIZE)
+      } catch (e) {
+        console.error(e)
+        setHasMore(false)
+      } finally {
+        setLoadingMore(false)
+      }
+      return
+    }
+
+    if (dataSource === 'semantic') {
+      setLoadingMore(true)
+      try {
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            buildSearchPostBody(pills, sidebar, {
+              query: qParam.trim(),
+              offset: items.length,
+              limit: PAGE_SIZE,
+            }),
+          ),
+        })
+        const json = (await res.json()) as { results?: SemanticResult[]; hasMore?: boolean }
+        const next = json.results ?? []
+        if (next.length > 0) setItems((prev) => [...prev, ...next])
+        setHasMore(!!json.hasMore)
+      } catch (e) {
+        console.error(e)
+        setHasMore(false)
+      } finally {
+        setLoadingMore(false)
+      }
+      return
+    }
 
     setLoadingMore(true)
-    pageRef.current += 1
     try {
-      const rows = await fullTextSearch(q, pageRef.current, pills)
-      if (rows.length > 0) {
-        setFtResults((prev) => [...prev, ...rows])
-        setMode((m) => (m === 'semantic' ? 'fulltext' : m))
-      }
+      const offset = items.length
+      let q = supabase
+        .from('generations')
+        .select('*')
+        .textSearch('prompt', qParam.trim(), { type: 'websearch' })
+      q = applySearchFiltersToQuery(q, pills, sidebar)
+      const { data, error } = await q
+        .order('sort_priority', { ascending: true })
+        .order('views_count', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1)
+      if (error) throw error
+      const rows = (data as Generation[]) ?? []
+      if (rows.length > 0) setItems((prev) => [...prev, ...rows])
       setHasMore(rows.length === PAGE_SIZE)
     } catch (e) {
       console.error(e)
       setHasMore(false)
+    } finally {
+      setLoadingMore(false)
     }
-    setLoadingMore(false)
-  }, [loadingMore, hasMore, qParam, pills])
+  }, [loadingMore, hasMore, qParam, pills, sidebar, dataSource, items.length])
 
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting && hasMore && !loadingMore && !loading && qParam.trim() && !vibeModeRef.current) {
+        if (entries[0]?.isIntersecting && hasMore && !loadingMore && !loading && !vibeModeRef.current) {
           void loadMore()
         }
       },
@@ -258,7 +272,7 @@ function SearchContent() {
     )
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [hasMore, loadingMore, loading, qParam, loadMore])
+  }, [hasMore, loadingMore, loading, loadMore])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -274,9 +288,6 @@ function SearchContent() {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [])
-
-  const baseResults = useMemo(() => mergeUnique(semanticResults, ftResults), [semanticResults, ftResults])
-  const filteredItems = useMemo(() => applySearchFilters(baseResults, pills, sidebar), [baseResults, pills, sidebar])
 
   const sidebarOnlyCount = useMemo(
     () =>
@@ -330,33 +341,46 @@ function SearchContent() {
   }
 
   const handleMoreLikeThis = async (item: SearchGridItem) => {
-    setVibeSnapshot({ semantic: semanticResults, ft: ftResults, mode, page: pageRef.current })
+    setVibeSnapshot({ items: [...items], dataSource, hasMore })
     setVibeMode(true)
     setLoading(true)
     setHasMore(false)
     try {
-      const results = await semanticSimilar(item.job_set_id, { category: pills.category, model: pills.model })
-      setSemanticResults(results)
-      setFtResults([])
-      setMode('semantic')
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          buildSearchPostBody(pills, sidebar, {
+            similar_job_set_id: item.job_set_id,
+            offset: 0,
+            limit: PAGE_SIZE,
+            threshold: 0.45,
+          }),
+        ),
+      })
+      const json = (await res.json()) as { results?: SemanticResult[]; hasMore?: boolean; error?: string }
+      if (!res.ok) throw new Error(json.error || String(res.status))
+      setItems(json.results ?? [])
+      setHasMore(!!json.hasMore)
+      setDataSource('semantic')
     } catch (err) {
       console.error(err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const exitVibe = () => {
     if (vibeSnapshot) {
-      setSemanticResults(vibeSnapshot.semantic)
-      setFtResults(vibeSnapshot.ft)
-      setMode(vibeSnapshot.mode)
-      pageRef.current = vibeSnapshot.page
+      setItems(vibeSnapshot.items)
+      setDataSource(vibeSnapshot.dataSource)
+      setHasMore(vibeSnapshot.hasMore)
     }
     setVibeMode(false)
     setVibeSnapshot(null)
   }
 
-  const flatForPanel = filteredItems
+  const flatForPanel = items
   const panelFlatItems = useMemo(() => {
     if (!panelLeadItem) return flatForPanel
     if (flatForPanel.some((x) => x.job_set_id === panelLeadItem.job_set_id)) return flatForPanel
@@ -367,7 +391,7 @@ function SearchContent() {
 
   const openPanel = (item: SearchGridItem) => {
     setPanelLeadItem(null)
-    const idx = filteredItems.findIndex((x) => x.job_set_id === item.job_set_id)
+    const idx = items.findIndex((x) => x.job_set_id === item.job_set_id)
     setPanelIndex(idx >= 0 ? idx : 0)
     setPanelOpen(true)
   }
@@ -424,7 +448,7 @@ function SearchContent() {
               Editor&apos;s picks — originals first by sort priority
             </p>
           )}
-          {qParam.trim() && !vibeMode && mode === 'semantic' && (
+          {qParam.trim() && !vibeMode && dataSource === 'semantic' && (
             <p className="flex items-center justify-center gap-2 border-b border-white/[0.04] px-4 py-2 text-xs text-white/50">
               <Sparkles className="h-3.5 w-3.5 text-red-400/80" />
               Semantic results for &ldquo;{qParam}&rdquo;
@@ -432,7 +456,7 @@ function SearchContent() {
           )}
 
           <SearchResultsGrid
-            items={filteredItems}
+            items={items}
             loading={loading}
             loadingMore={loadingMore}
             onOpenCard={openPanel}
@@ -443,11 +467,7 @@ function SearchContent() {
             onExitVibe={exitVibe}
           />
 
-          {!loading && filteredItems.length === 0 && baseResults.length > 0 && (
-            <div className="px-4 pb-8 text-center text-sm text-white/45">Adjust filters to see more results.</div>
-          )}
-
-          {!loading && baseResults.length === 0 && qParam.trim() && (
+          {!loading && items.length === 0 && qParam.trim() && (
             <div className="flex flex-col items-center py-24 text-center">
               <Frown className="mb-4 h-12 w-12 text-white/20" />
               <p className="text-white/70">No results</p>
@@ -457,7 +477,7 @@ function SearchContent() {
             </div>
           )}
 
-          {!loading && baseResults.length === 0 && !qParam.trim() && !vibeMode && (
+          {!loading && items.length === 0 && !qParam.trim() && !vibeMode && (
             <div className="flex flex-col items-center py-16 text-center text-sm text-white/40">
               Nothing to show yet. Try a search above.
             </div>

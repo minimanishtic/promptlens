@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
 import type { Database, Generation } from '@/types/database'
+import {
+  matchesSearchFilters,
+  type SearchPillState,
+  type SearchSidebarState,
+} from '@/lib/search-filter-options'
 
 // Server-side Supabase client (uses same anon key — RLS allows public reads)
 const supabase = createClient<Database>(
@@ -51,19 +56,74 @@ function parseStoredEmbedding(value: unknown): number[] | null {
   return null
 }
 
+function optStr(v: unknown): string | null {
+  if (v == null || v === '') return null
+  return typeof v === 'string' ? v : String(v)
+}
+
+function strArray(v: unknown): string[] {
+  if (!Array.isArray(v)) return []
+  return v.filter((x): x is string => typeof x === 'string')
+}
+
+function pillSidebarFromBody(body: Record<string, unknown>): {
+  pills: SearchPillState
+  sidebar: SearchSidebarState
+} {
+  const pills: SearchPillState = {
+    model: optStr(body.model),
+    category: optStr(body.category),
+    aspect_ratio: optStr(body.aspect_ratio),
+    visual_style: optStr(body.visual_style),
+  }
+  const sidebar: SearchSidebarState = {
+    visual_style: strArray(body.sidebar_visual_style),
+    lighting: strArray(body.sidebar_lighting),
+    mood: strArray(body.sidebar_mood),
+    composition: strArray(body.sidebar_composition),
+    camera_simulation: strArray(body.sidebar_camera_simulation),
+  }
+  return { pills, sidebar }
+}
+
+function hasExtraSearchFilters(pills: SearchPillState, sidebar: SearchSidebarState): boolean {
+  return !!(
+    pills.aspect_ratio ||
+    pills.visual_style ||
+    sidebar.visual_style.length ||
+    sidebar.lighting.length ||
+    sidebar.mood.length ||
+    sidebar.composition.length ||
+    sidebar.camera_simulation.length
+  )
+}
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json() as {
+    const body = (await req.json()) as Record<string, unknown> & {
       query?: string
-      /** When set, uses stored embedding (or embeds that row’s prompt) instead of `query`. */
       similar_job_set_id?: string
       category?: string
       model?: string
       limit?: number
       threshold?: number
+      offset?: number
+      aspect_ratio?: string | null
+      visual_style?: string | null
+      sidebar_visual_style?: string[]
+      sidebar_lighting?: string[]
+      sidebar_mood?: string[]
+      sidebar_composition?: string[]
+      sidebar_camera_simulation?: string[]
     }
 
-    const { query, similar_job_set_id, category, model, limit = 24, threshold = 0.5 } = body
+    const { query, similar_job_set_id, category, model, threshold = 0.5 } = body
+    const { pills: filterPills, sidebar: filterSidebar } = pillSidebarFromBody(body)
+    const offset = typeof body.offset === 'number' && body.offset >= 0 ? body.offset : 0
+    const limit = Math.min(typeof body.limit === 'number' && body.limit > 0 ? body.limit : 50, 80)
+
+    const rpcCategory = category ?? filterPills.category ?? null
+    const rpcModel = model ?? filterPills.model ?? null
 
     // Explicit key check with clear error message
     const apiKey = process.env.OPENAI_API_KEY
@@ -116,14 +176,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'query or similar_job_set_id is required' }, { status: 400 })
     }
 
+    const extra = hasExtraSearchFilters(filterPills, filterSidebar)
+    const rpcMatchCount = Math.min(
+      800,
+      Math.max(96, offset + limit + (extra ? 400 : 120)),
+    )
+
     // 2. Call the Supabase RPC — returns limited fields + similarity score
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: rpcData, error: rpcError } = await (supabase as any).rpc('search_prompts', {
       query_embedding: embedding,
       match_threshold: threshold,
-      match_count: limit,
-      filter_category: category ?? null,
-      filter_model: model ?? null,
+      match_count: rpcMatchCount,
+      filter_category: rpcCategory,
+      filter_model: rpcModel,
     })
 
     if (rpcError) {
@@ -134,7 +200,7 @@ export async function POST(req: Request) {
     const rpcRows: RpcRow[] = (rpcData as RpcRow[]) ?? []
 
     if (rpcRows.length === 0) {
-      return NextResponse.json({ results: [], query: queryEcho })
+      return NextResponse.json({ results: [], query: queryEcho, hasMore: false })
     }
 
     // 3. Build a similarity lookup keyed by job_set_id
@@ -174,7 +240,13 @@ export async function POST(req: Request) {
       return (a.sort_priority ?? 1) - (b.sort_priority ?? 1)
     })
 
-    return NextResponse.json({ results, query: queryEcho })
+    const filtered = results.filter((g) => matchesSearchFilters(g, filterPills, filterSidebar))
+    const page = filtered.slice(offset, offset + limit)
+    const hasMore =
+      page.length === limit &&
+      (filtered.length > offset + limit || rpcRows.length >= rpcMatchCount)
+
+    return NextResponse.json({ results: page, query: queryEcho, hasMore })
   } catch (err) {
     console.error('Semantic search error:', err)
     return NextResponse.json(
