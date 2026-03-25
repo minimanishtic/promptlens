@@ -1,5 +1,6 @@
 /** Maps from DB classification value → row count (entire `generations` table). */
 export type SearchGlobalFilterCounts = {
+  model: Record<string, number>
   visual_style: Record<string, number>
   lighting: Record<string, number>
   mood: Record<string, number>
@@ -8,6 +9,7 @@ export type SearchGlobalFilterCounts = {
 }
 
 const EMPTY: SearchGlobalFilterCounts = {
+  model: {},
   visual_style: {},
   lighting: {},
   mood: {},
@@ -30,6 +32,7 @@ export function parseSearchGlobalFilterCounts(raw: unknown): SearchGlobalFilterC
   if (!raw || typeof raw !== 'object') return { ...EMPTY }
   const o = raw as Record<string, unknown>
   return {
+    model: normMap(o.model),
     visual_style: normMap(o.visual_style),
     lighting: normMap(o.lighting),
     mood: normMap(o.mood),

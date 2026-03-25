@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Filter, Mountain, PanelLeftClose, Search, ChevronDown, Upload } from 'lucide-react'
 import {
-  SEARCH_MODEL_OPTIONS,
+  getModelDisplayName,
   SEARCH_CATEGORY_OPTIONS,
   SEARCH_ASPECT_OPTIONS,
   SEARCH_STYLE_PILL_OPTIONS,
@@ -209,6 +209,7 @@ export function SearchStickyFilterBar({
   onClearAll,
   onOpenMobileFilters,
   mobileActiveCount,
+  globalCounts,
 }: {
   inputValue: string
   setInputValue: (v: string) => void
@@ -220,7 +221,32 @@ export function SearchStickyFilterBar({
   onClearAll: () => void
   onOpenMobileFilters: () => void
   mobileActiveCount: number
+  globalCounts: SearchGlobalFilterCounts | null
 }) {
+  const modelOptions = useMemo(() => {
+    const m = globalCounts?.model
+    if (!m || Object.keys(m).length === 0) {
+      if (pills.model) {
+        return [{ value: pills.model, label: getModelDisplayName(pills.model), count: 0 }]
+      }
+      return []
+    }
+    const sorted = Object.entries(m)
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, count]) => ({
+        value,
+        label: getModelDisplayName(value),
+        count,
+      }))
+    if (pills.model && !sorted.some((o) => o.value === pills.model)) {
+      return [
+        { value: pills.model, label: getModelDisplayName(pills.model), count: m[pills.model] ?? 0 },
+        ...sorted,
+      ]
+    }
+    return sorted
+  }, [globalCounts, pills.model])
+
   return (
     <div className="sticky top-14 z-30 border-b border-white/[0.06] bg-[#0A0A0A]">
       <div className="mx-auto max-w-[100vw] px-3 py-3 md:px-4">
@@ -257,9 +283,9 @@ export function SearchStickyFilterBar({
               aria-label="Model"
             >
               <option value="">Model</option>
-              {SEARCH_MODEL_OPTIONS.map((opt) => (
+              {modelOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {opt.label} ({opt.count.toLocaleString()})
                 </option>
               ))}
             </select>

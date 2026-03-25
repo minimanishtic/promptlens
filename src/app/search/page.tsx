@@ -412,6 +412,7 @@ function SearchContent() {
         onClearAll={clearAllFilters}
         onOpenMobileFilters={() => setMobileFiltersOpen(true)}
         mobileActiveCount={totalActiveFilterCount}
+        globalCounts={globalFilterCounts}
       />
 
       <div className="flex min-h-0 flex-1">

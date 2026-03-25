@@ -1,53 +1,34 @@
 import type { Generation } from '@/types/database'
 import { KNOWN_PRIMARY_CATEGORIES } from '@/lib/primary-categories'
 
-/** Consolidated model id → label (search pill + display helpers). */
+/** Known model ids → display labels (search + cards; unknown ids use title-case fallback). */
 export const MODEL_DISPLAY_NAMES: Record<string, string> = {
-  nano_banana_2: 'Nano Banana 2',
-  text2image_soul: 'Soul v1',
-  'flux-schnell': 'Flux Schnell',
-  'flux-pro v1.1': 'Flux Pro v1.1',
+  nano_banana_2: 'Nano Banana Pro',
   text2image_soul_v2: 'Soul v2',
-  ai_influencer: 'AI Influencer',
-  seedream: 'Seedream',
-  nano_banana: 'Nano Banana v1',
-  seedream_v4_5: 'Seedream 4.5',
+  text2image_soul: 'Soul v1',
+  seedream: 'Seedream 2',
+  seedream_v4_5: 'Seedream 1.5',
+  'flux-pro v1.1': 'Flux Pro v1.1',
+  'flux-schnell': 'Flux Schnell',
   flux_2: 'Flux 2',
-  qwen_camera_control: 'Qwen Camera',
+  ai_influencer: 'AI Influencer',
+  nano_banana: 'Nano Banana 2',
+  nano_banana_flash: 'Nano Banana',
   cinematic_studio_image: 'Cinematic Studio',
-  other: 'Other',
   kling_omni_image: 'Kling Omni',
-  nano_banana_flash: 'Nano Flash',
+  qwen_camera_control: 'Qwen Camera',
   openai_hazel: 'OpenAI Hazel',
   soul_cinematic: 'Soul Cinematic',
   seedream_v5_lite: 'Seedream 5 Lite',
+  other: 'Other',
 }
 
 export function getModelDisplayName(model: string): string {
-  return MODEL_DISPLAY_NAMES[model] || model
+  if (MODEL_DISPLAY_NAMES[model]) return MODEL_DISPLAY_NAMES[model]
+  return model
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
 }
-
-/** Only source for the search Model pill dropdown (order: popularity). */
-export const SEARCH_MODEL_OPTIONS: { value: string; label: string }[] = [
-  { value: 'nano_banana_2', label: 'Nano Banana 2' },
-  { value: 'text2image_soul', label: 'Soul v1' },
-  { value: 'flux-schnell', label: 'Flux Schnell' },
-  { value: 'flux-pro v1.1', label: 'Flux Pro v1.1' },
-  { value: 'text2image_soul_v2', label: 'Soul v2' },
-  { value: 'ai_influencer', label: 'AI Influencer' },
-  { value: 'seedream', label: 'Seedream' },
-  { value: 'nano_banana', label: 'Nano Banana v1' },
-  { value: 'seedream_v4_5', label: 'Seedream 4.5' },
-  { value: 'flux_2', label: 'Flux 2' },
-  { value: 'qwen_camera_control', label: 'Qwen Camera' },
-  { value: 'cinematic_studio_image', label: 'Cinematic Studio' },
-  { value: 'kling_omni_image', label: 'Kling Omni' },
-  { value: 'nano_banana_flash', label: 'Nano Flash' },
-  { value: 'openai_hazel', label: 'OpenAI Hazel' },
-  { value: 'soul_cinematic', label: 'Soul Cinematic' },
-  { value: 'seedream_v5_lite', label: 'Seedream 5 Lite' },
-  { value: 'other', label: 'Other' },
-]
 
 export const SEARCH_ASPECT_OPTIONS = [
   { value: '1:1', label: '1:1' },
