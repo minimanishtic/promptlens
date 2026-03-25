@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { Bookmark, Clipboard, Sparkles } from 'lucide-react'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
 import { getModelDisplayName, type SearchGridItem } from '@/lib/search-filter-options'
@@ -36,11 +36,13 @@ interface Props {
   onMoreLikeThis: (item: SearchGridItem) => void
 }
 
-function imageAspectRatio(item: SearchGridItem): number {
+function imageAspectRatioStyle(item: SearchGridItem): CSSProperties {
   const w = item.width
   const h = item.height
-  if (typeof w === 'number' && typeof h === 'number' && w > 0 && h > 0) return w / h
-  return 0.75
+  if (typeof w === 'number' && typeof h === 'number' && w > 0 && h > 0) {
+    return { aspectRatio: `${w} / ${h}` }
+  }
+  return { aspectRatio: '3 / 4' }
 }
 
 export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeThis }: Props) {
@@ -49,7 +51,7 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
   const [imgLoaded, setImgLoaded] = useState(false)
-  const aspectRatio = imageAspectRatio(item)
+  const aspectStyle = imageAspectRatioStyle(item)
 
   useEffect(() => {
     setImgLoaded(false)
@@ -141,8 +143,8 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
       className="group relative cursor-pointer overflow-hidden rounded-lg border border-white/[0.06] outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
     >
       <div
-        className="relative w-full overflow-hidden bg-white/[0.04]"
-        style={{ aspectRatio, maxHeight: 'min(72vh, 560px)' }}
+        className="relative w-full overflow-hidden rounded-lg bg-white/[0.04]"
+        style={aspectStyle}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

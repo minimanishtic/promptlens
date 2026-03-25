@@ -73,49 +73,28 @@ body {
   animation: hero-cursor-blink 1.2s step-end infinite;
 }
 
-/* Search results masonry */
-.search-masonry {
+/* Search results — CSS columns (paginated: stable layout, no append reflow) */
+.search-grid {
   column-count: 2;
   column-gap: 8px;
 }
 @media (min-width: 768px) {
-  .search-masonry {
+  .search-grid {
     column-count: 3;
   }
 }
 @media (min-width: 1024px) {
-  .search-masonry {
+  .search-grid {
     column-count: 4;
   }
 }
 @media (min-width: 1280px) {
-  .search-masonry {
+  .search-grid {
     column-count: 5;
   }
 }
-.search-masonry > * {
+
+.search-card {
   break-inside: avoid;
   margin-bottom: 8px;
-}
-
-/* Search results — fixed grid (paginated, no column reflow) */
-.search-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-@media (min-width: 768px) {
-  .search-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-@media (min-width: 1024px) {
-  .search-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-@media (min-width: 1280px) {
-  .search-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
 }

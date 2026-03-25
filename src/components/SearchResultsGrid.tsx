@@ -82,10 +82,9 @@ export default function SearchResultsGrid({
       {showSkeleton ? (
         <div className="search-grid" aria-busy="true" aria-label="Loading results">
           {Array.from({ length: SKELETON_PLACEHOLDERS }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-[3/4] max-h-[min(72vh,560px)] animate-pulse rounded-lg bg-white/[0.03]"
-            />
+            <div key={i} className="search-card">
+              <div className="aspect-[3/4] animate-pulse rounded-lg bg-white/[0.03]" />
+            </div>
           ))}
         </div>
       ) : items.length === 0 ? (
@@ -93,13 +92,14 @@ export default function SearchResultsGrid({
       ) : (
         <div className="search-grid">
           {items.map((item) => (
-            <SearchAssetCard
-              key={item.id}
-              item={item}
-              onOpen={onOpenCard}
-              onTagClick={onTagFilter}
-              onMoreLikeThis={onMoreLikeThis}
-            />
+            <div key={item.id} className="search-card">
+              <SearchAssetCard
+                item={item}
+                onOpen={onOpenCard}
+                onTagClick={onTagFilter}
+                onMoreLikeThis={onMoreLikeThis}
+              />
+            </div>
           ))}
         </div>
       )}
