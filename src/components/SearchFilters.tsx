@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Filter, Mountain, PanelLeftClose, Search, ChevronDown, Upload } from 'lucide-react'
 import {
   SEARCH_MODEL_OPTIONS,
-  getSearchModelLabel,
   SEARCH_CATEGORY_OPTIONS,
   SEARCH_ASPECT_OPTIONS,
   SEARCH_STYLE_PILL_OPTIONS,
@@ -258,9 +257,9 @@ export function SearchStickyFilterBar({
               aria-label="Model"
             >
               <option value="">Model</option>
-              {SEARCH_MODEL_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {getSearchModelLabel(o.value)}
+              {SEARCH_MODEL_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </select>

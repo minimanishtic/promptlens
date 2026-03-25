@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { X, Copy, Share2 } from 'lucide-react'
 import type { Generation } from '@/types/database'
-import { MODEL_DISPLAY_NAMES } from '@/types/database'
+import { getModelDisplayName } from '@/lib/search-filter-options'
 import SavePromptButton from '@/components/SavePromptButton'
 import { supabase as browserSupabase } from '@/lib/supabase'
 
@@ -114,7 +114,7 @@ export default function ImageSlidePanel({
 
   if (!open || !gen) return null
 
-  const modelLabel = gen.model ? (MODEL_DISPLAY_NAMES[gen.model] ?? gen.model) : '—'
+  const modelLabel = gen.model ? getModelDisplayName(gen.model) : '—'
   const dims =
     gen.width && gen.height ? `${gen.width} × ${gen.height}${gen.aspect_ratio ? ` · ${gen.aspect_ratio}` : ''}` : gen.aspect_ratio ?? '—'
 

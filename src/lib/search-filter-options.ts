@@ -1,55 +1,53 @@
 import type { Generation } from '@/types/database'
-import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import { KNOWN_PRIMARY_CATEGORIES } from '@/lib/primary-categories'
 
-/** Extra / friendlier labels for search model pill (overrides `MODEL_DISPLAY_NAMES` when both exist). */
-export const SEARCH_MODEL_LABEL_OVERRIDES: Record<string, string> = {
+/** Consolidated model id → label (search pill + display helpers). */
+export const MODEL_DISPLAY_NAMES: Record<string, string> = {
   nano_banana_2: 'Nano Banana 2',
-  text2image_soul: 'Soul V1',
-  text2image_soul_v2: 'Soul V2',
-  nano_flash: 'Nano Flash',
-  'flux-pro v1.1': 'Flux Pro v1.1',
+  text2image_soul: 'Soul v1',
   'flux-schnell': 'Flux Schnell',
-  flux_schnell: 'Flux Schnell',
-  seedream: 'Seedream',
-  'seedream_4.5': 'Seedream 4.5',
-  seedream_4_5: 'Seedream 4.5',
-  seedream_5_lite: 'Seedream 5 Lite',
-  seedream_v4_5: 'Seedream 4.5',
-  seedream_v5_lite: 'Seedream 5 Lite',
+  'flux-pro v1.1': 'Flux Pro v1.1',
+  text2image_soul_v2: 'Soul v2',
   ai_influencer: 'AI Influencer',
+  seedream: 'Seedream',
+  nano_banana: 'Nano Banana v1',
+  seedream_v4_5: 'Seedream 4.5',
   flux_2: 'Flux 2',
+  qwen_camera_control: 'Qwen Camera',
   cinematic_studio_image: 'Cinematic Studio',
-  qwen_camera_control: 'Qwen Camera Control',
+  other: 'Other',
   kling_omni_image: 'Kling Omni',
-  keyframes_faceswap: 'Keyframes Faceswap',
-  nano_banana_2_ai_stylist: 'AI Stylist',
-  nano_banana_2_relight: 'Nano Relight',
-  image_auto: 'Image Auto',
-  canvas: 'Canvas',
-  canvas_soul: 'Canvas Soul',
-  topaz_image: 'Topaz',
-  z_image: 'Z Image',
-  flux_kontext: 'Flux Kontext',
-  reve: 'Reve',
   nano_banana_flash: 'Nano Flash',
-  text2keyframes: 'Keyframes',
+  openai_hazel: 'OpenAI Hazel',
+  soul_cinematic: 'Soul Cinematic',
+  seedream_v5_lite: 'Seedream 5 Lite',
 }
 
-export function getSearchModelLabel(model: string): string {
-  return SEARCH_MODEL_LABEL_OVERRIDES[model] ?? MODEL_DISPLAY_NAMES[model] ?? model
+export function getModelDisplayName(model: string): string {
+  return MODEL_DISPLAY_NAMES[model] || model
 }
 
-/** Distinct model values for the pill dropdown (sorted by display label). */
-export const SEARCH_MODEL_OPTIONS: { value: string; label: string }[] = (() => {
-  const values = new Set<string>([
-    ...Object.keys(MODEL_DISPLAY_NAMES),
-    ...Object.keys(SEARCH_MODEL_LABEL_OVERRIDES),
-  ])
-  return Array.from(values)
-    .map((value) => ({ value, label: getSearchModelLabel(value) }))
-    .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }))
-})()
+/** Only source for the search Model pill dropdown (order: popularity). */
+export const SEARCH_MODEL_OPTIONS: { value: string; label: string }[] = [
+  { value: 'nano_banana_2', label: 'Nano Banana 2' },
+  { value: 'text2image_soul', label: 'Soul v1' },
+  { value: 'flux-schnell', label: 'Flux Schnell' },
+  { value: 'flux-pro v1.1', label: 'Flux Pro v1.1' },
+  { value: 'text2image_soul_v2', label: 'Soul v2' },
+  { value: 'ai_influencer', label: 'AI Influencer' },
+  { value: 'seedream', label: 'Seedream' },
+  { value: 'nano_banana', label: 'Nano Banana v1' },
+  { value: 'seedream_v4_5', label: 'Seedream 4.5' },
+  { value: 'flux_2', label: 'Flux 2' },
+  { value: 'qwen_camera_control', label: 'Qwen Camera' },
+  { value: 'cinematic_studio_image', label: 'Cinematic Studio' },
+  { value: 'kling_omni_image', label: 'Kling Omni' },
+  { value: 'nano_banana_flash', label: 'Nano Flash' },
+  { value: 'openai_hazel', label: 'OpenAI Hazel' },
+  { value: 'soul_cinematic', label: 'Soul Cinematic' },
+  { value: 'seedream_v5_lite', label: 'Seedream 5 Lite' },
+  { value: 'other', label: 'Other' },
+]
 
 export const SEARCH_ASPECT_OPTIONS = [
   { value: '1:1', label: '1:1' },

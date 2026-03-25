@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Bookmark, Clipboard, Sparkles } from 'lucide-react'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
-import { MODEL_DISPLAY_NAMES } from '@/types/database'
-import type { SearchGridItem } from '@/lib/search-filter-options'
+import { getModelDisplayName, type SearchGridItem } from '@/lib/search-filter-options'
 import { useAuth } from '@/context/AuthContext'
 import { createClient } from '@/lib/supabase-client'
 
@@ -58,7 +57,7 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
       .maybeSingle()
       .then(({ data }: { data: { id: string } | null }) => setSaved(!!data))
   }, [user, item.job_set_id])
-  const modelLabel = item.model ? (MODEL_DISPLAY_NAMES[item.model] ?? item.model) : null
+  const modelLabel = item.model ? getModelDisplayName(item.model) : null
   const dot = item.model ? MODEL_DOT[item.model] ?? '#a1a1aa' : '#a1a1aa'
   const tags = pickTags(item)
   const ar = item.aspect_ratio ?? '—'
