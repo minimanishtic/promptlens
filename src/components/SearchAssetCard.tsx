@@ -142,7 +142,7 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
     >
       <div
         className="relative w-full overflow-hidden bg-white/[0.04]"
-        style={{ aspectRatio }}
+        style={{ aspectRatio, maxHeight: 'min(72vh, 560px)' }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

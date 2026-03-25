@@ -23,7 +23,7 @@ import {
 } from '@/lib/search-filter-options'
 import type { SearchGlobalFilterCounts } from '@/lib/search-global-filter-counts'
 
-const PAGE_SIZE = 50
+const ITEMS_PER_PAGE = 40
 
 type DataSource = 'trending' | 'semantic' | 'fulltext'
 
@@ -52,7 +52,7 @@ function buildSearchPostBody(
     sidebar_composition: sidebar.composition,
     sidebar_camera_simulation: sidebar.camera_simulation,
     offset: opts.offset ?? 0,
-    limit: opts.limit ?? PAGE_SIZE,
+    limit: opts.limit ?? ITEMS_PER_PAGE,
   }
 }
 
@@ -71,14 +71,16 @@ function SearchContent() {
   const [items, setItems] = useState<SearchGridItem[]>([])
   const [dataSource, setDataSource] = useState<DataSource>('trending')
   const [loading, setLoading] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [hasMore, setHasMore] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
 
   const [vibeMode, setVibeMode] = useState(false)
+  const [vibeAnchorId, setVibeAnchorId] = useState<string | null>(null)
   const [vibeSnapshot, setVibeSnapshot] = useState<{
     items: SearchGridItem[]
     dataSource: DataSource
-    hasMore: boolean
+    totalCount: number
+    currentPage: number
   } | null>(null)
 
   const vibeModeRef = useRef(false)
@@ -90,11 +92,27 @@ function SearchContent() {
   const [panelIndex, setPanelIndex] = useState(0)
   const [panelLeadItem, setPanelLeadItem] = useState<Generation | null>(null)
 
-  const sentinelRef = useRef<HTMLDivElement>(null)
+  const setPillsResetPage = useCallback((action: React.SetStateAction<SearchPillState>) => {
+    setCurrentPage(1)
+    setPills(action)
+  }, [])
+  const setSidebarResetPage = useCallback((action: React.SetStateAction<SearchSidebarState>) => {
+    setCurrentPage(1)
+    setSidebar(action)
+  }, [])
+
   const inputRef = useRef<HTMLInputElement>(null)
-  /** Bumps on each main list fetch so stale responses and in-flight loadMore cannot overwrite. */
   const mainListGenRef = useRef(0)
   const vibeFetchIdRef = useRef(0)
+
+  const filtersKey = useMemo(() => JSON.stringify({ q: qParam, pills, sidebar }), [qParam, pills, sidebar])
+  const filtersKeyRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (filtersKeyRef.current !== null && filtersKeyRef.current !== filtersKey) {
+      setCurrentPage(1)
+    }
+    filtersKeyRef.current = filtersKey
+  }, [filtersKey])
 
   useEffect(() => {
     setInputValue(qParam)
@@ -120,22 +138,26 @@ function SearchContent() {
     if (vibeModeRef.current) return
 
     const gen = ++mainListGenRef.current
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE
     setLoading(true)
     setItems([])
-    setHasMore(false)
 
     try {
       if (!qParam.trim()) {
-        let q = applySearchFiltersToQuery(supabase.from('generations').select('*'), pills, sidebar)
-        const { data, error } = await q
+        let q = applySearchFiltersToQuery(
+          supabase.from('generations').select('*', { count: 'exact' }),
+          pills,
+          sidebar,
+        )
+        const { data, error, count } = await q
           .order('sort_priority', { ascending: true })
           .order('views_count', { ascending: false })
-          .range(0, PAGE_SIZE - 1)
+          .range(offset, offset + ITEMS_PER_PAGE - 1)
         if (error) throw error
         if (gen !== mainListGenRef.current) return
         const rows = (data as Generation[]) ?? []
         setItems(rows)
-        setHasMore(rows.length === PAGE_SIZE)
+        setTotalCount(count ?? rows.length)
         setDataSource('trending')
         return
       }
@@ -144,12 +166,16 @@ function SearchContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
-          buildSearchPostBody(pills, sidebar, { query: qParam.trim(), offset: 0, limit: PAGE_SIZE }),
+          buildSearchPostBody(pills, sidebar, {
+            query: qParam.trim(),
+            offset,
+            limit: ITEMS_PER_PAGE,
+          }),
         ),
       })
       const semJson = (await semRes.json()) as {
         results?: SemanticResult[]
-        hasMore?: boolean
+        totalCount?: number
         error?: string
       }
       if (!semRes.ok) throw new Error(semJson.error || `API ${semRes.status}`)
@@ -157,136 +183,89 @@ function SearchContent() {
 
       if (semJson.results && semJson.results.length > 0) {
         setItems(semJson.results)
-        setHasMore(!!semJson.hasMore)
+        setTotalCount(semJson.totalCount ?? semJson.results.length)
         setDataSource('semantic')
         return
       }
 
       let fq = supabase
         .from('generations')
-        .select('*')
+        .select('*', { count: 'exact' })
         .textSearch('prompt', qParam.trim(), { type: 'websearch' })
       fq = applySearchFiltersToQuery(fq, pills, sidebar)
-      const { data: ftData, error: ftErr } = await fq
+      const { data: ftData, error: ftErr, count: ftCount } = await fq
         .order('sort_priority', { ascending: true })
         .order('views_count', { ascending: false })
-        .range(0, PAGE_SIZE - 1)
+        .range(offset, offset + ITEMS_PER_PAGE - 1)
       if (ftErr) throw ftErr
       if (gen !== mainListGenRef.current) return
       const ftRows = (ftData as Generation[]) ?? []
       setItems(ftRows)
-      setHasMore(ftRows.length === PAGE_SIZE)
+      setTotalCount(ftCount ?? ftRows.length)
       setDataSource('fulltext')
     } catch (err) {
       console.error(err)
       if (gen === mainListGenRef.current) {
         setItems([])
+        setTotalCount(0)
         setDataSource('trending')
       }
     } finally {
       if (gen === mainListGenRef.current) setLoading(false)
     }
-  }, [qParam, pills, sidebar])
+  }, [qParam, pills, sidebar, currentPage])
 
   useEffect(() => {
+    if (vibeMode) return
     void runMainFetch()
-  }, [runMainFetch])
+  }, [vibeMode, runMainFetch])
 
-  const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore || vibeModeRef.current) return
+  const runVibeFetch = useCallback(async () => {
+    if (!vibeAnchorId) return
+    const vf = ++vibeFetchIdRef.current
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE
+    setLoading(true)
+    setItems([])
 
-    const listGen = mainListGenRef.current
-
-    if (!qParam.trim()) {
-      setLoadingMore(true)
-      try {
-        const offset = items.length
-        let q = applySearchFiltersToQuery(supabase.from('generations').select('*'), pills, sidebar)
-        const { data, error } = await q
-          .order('sort_priority', { ascending: true })
-          .order('views_count', { ascending: false })
-          .range(offset, offset + PAGE_SIZE - 1)
-        if (error) throw error
-        if (listGen !== mainListGenRef.current) return
-        const rows = (data as Generation[]) ?? []
-        if (rows.length > 0) setItems((prev) => [...prev, ...rows])
-        setHasMore(rows.length === PAGE_SIZE)
-      } catch (e) {
-        console.error(e)
-        if (listGen === mainListGenRef.current) setHasMore(false)
-      } finally {
-        setLoadingMore(false)
-      }
-      return
-    }
-
-    if (dataSource === 'semantic') {
-      setLoadingMore(true)
-      try {
-        const res = await fetch('/api/search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(
-            buildSearchPostBody(pills, sidebar, {
-              query: qParam.trim(),
-              offset: items.length,
-              limit: PAGE_SIZE,
-            }),
-          ),
-        })
-        const json = (await res.json()) as { results?: SemanticResult[]; hasMore?: boolean }
-        if (listGen !== mainListGenRef.current) return
-        const next = json.results ?? []
-        if (next.length > 0) setItems((prev) => [...prev, ...next])
-        setHasMore(!!json.hasMore)
-      } catch (e) {
-        console.error(e)
-        if (listGen === mainListGenRef.current) setHasMore(false)
-      } finally {
-        setLoadingMore(false)
-      }
-      return
-    }
-
-    setLoadingMore(true)
     try {
-      const offset = items.length
-      let q = supabase
-        .from('generations')
-        .select('*')
-        .textSearch('prompt', qParam.trim(), { type: 'websearch' })
-      q = applySearchFiltersToQuery(q, pills, sidebar)
-      const { data, error } = await q
-        .order('sort_priority', { ascending: true })
-        .order('views_count', { ascending: false })
-        .range(offset, offset + PAGE_SIZE - 1)
-      if (error) throw error
-      if (listGen !== mainListGenRef.current) return
-      const rows = (data as Generation[]) ?? []
-      if (rows.length > 0) setItems((prev) => [...prev, ...rows])
-      setHasMore(rows.length === PAGE_SIZE)
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          buildSearchPostBody(pills, sidebar, {
+            similar_job_set_id: vibeAnchorId,
+            offset,
+            limit: ITEMS_PER_PAGE,
+            threshold: 0.45,
+          }),
+        ),
+      })
+      const json = (await res.json()) as {
+        results?: SemanticResult[]
+        totalCount?: number
+        error?: string
+      }
+      if (!res.ok) throw new Error(json.error || String(res.status))
+      if (vf !== vibeFetchIdRef.current) return
+      const rows = json.results ?? []
+      setItems(rows)
+      setTotalCount(json.totalCount ?? rows.length)
+      setDataSource('semantic')
     } catch (e) {
       console.error(e)
-      if (listGen === mainListGenRef.current) setHasMore(false)
+      if (vf === vibeFetchIdRef.current) {
+        setItems([])
+        setTotalCount(0)
+      }
     } finally {
-      setLoadingMore(false)
+      if (vf === vibeFetchIdRef.current) setLoading(false)
     }
-  }, [loadingMore, hasMore, qParam, pills, sidebar, dataSource, items.length])
+  }, [vibeAnchorId, currentPage, pills, sidebar])
 
   useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && hasMore && !loadingMore && !loading && !vibeModeRef.current) {
-          void loadMore()
-        }
-      },
-      { rootMargin: '400px' },
-    )
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [hasMore, loadingMore, loading, loadMore])
+    if (!vibeMode || !vibeAnchorId) return
+    void runVibeFetch()
+  }, [vibeMode, vibeAnchorId, runVibeFetch])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -324,10 +303,20 @@ function SearchContent() {
 
   const totalActiveFilterCount = pillCount + sidebarOnlyCount
 
+  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE))
+
+  const handlePageChange = (page: number) => {
+    const next = Math.min(Math.max(1, page), totalPages)
+    setCurrentPage(next)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setCurrentPage(1)
     if (vibeMode) {
       setVibeMode(false)
+      setVibeAnchorId(null)
       setVibeSnapshot(null)
     }
     const next = inputValue.trim()
@@ -335,11 +324,13 @@ function SearchContent() {
   }
 
   const clearAllFilters = () => {
+    setCurrentPage(1)
     setPills(emptyPills)
     setSidebar(emptySidebar)
   }
 
   const onTagFilter = (filter: 'primary_category' | 'visual_style' | 'lighting' | 'mood', value: string) => {
+    setCurrentPage(1)
     if (filter === 'primary_category') setPills((p) => ({ ...p, category: value }))
     else if (filter === 'visual_style') setPills((p) => ({ ...p, visual_style: value }))
     else if (filter === 'lighting')
@@ -354,46 +345,27 @@ function SearchContent() {
       }))
   }
 
-  const handleMoreLikeThis = async (item: SearchGridItem) => {
-    const vf = ++vibeFetchIdRef.current
-    setVibeSnapshot({ items: [...items], dataSource, hasMore })
+  const handleMoreLikeThis = (item: SearchGridItem) => {
+    setVibeSnapshot({
+      items: [...items],
+      dataSource,
+      totalCount,
+      currentPage,
+    })
+    setVibeAnchorId(item.job_set_id)
     setVibeMode(true)
-    setLoading(true)
-    setItems([])
-    setHasMore(false)
-    try {
-      const res = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          buildSearchPostBody(pills, sidebar, {
-            similar_job_set_id: item.job_set_id,
-            offset: 0,
-            limit: PAGE_SIZE,
-            threshold: 0.45,
-          }),
-        ),
-      })
-      const json = (await res.json()) as { results?: SemanticResult[]; hasMore?: boolean; error?: string }
-      if (!res.ok) throw new Error(json.error || String(res.status))
-      if (vf !== vibeFetchIdRef.current) return
-      setItems(json.results ?? [])
-      setHasMore(!!json.hasMore)
-      setDataSource('semantic')
-    } catch (err) {
-      console.error(err)
-    } finally {
-      if (vf === vibeFetchIdRef.current) setLoading(false)
-    }
+    setCurrentPage(1)
   }
 
   const exitVibe = () => {
     if (vibeSnapshot) {
       setItems(vibeSnapshot.items)
       setDataSource(vibeSnapshot.dataSource)
-      setHasMore(vibeSnapshot.hasMore)
+      setTotalCount(vibeSnapshot.totalCount)
+      setCurrentPage(vibeSnapshot.currentPage)
     }
     setVibeMode(false)
+    setVibeAnchorId(null)
     setVibeSnapshot(null)
   }
 
@@ -424,7 +396,7 @@ function SearchContent() {
         onSearchSubmit={handleSearchSubmit}
         inputRef={inputRef}
         pills={pills}
-        setPills={setPills}
+        setPills={setPillsResetPage}
         showClearAll={totalActiveFilterCount > 0}
         onClearAll={clearAllFilters}
         onOpenMobileFilters={() => setMobileFiltersOpen(true)}
@@ -438,7 +410,7 @@ function SearchContent() {
             <SearchFilterSidebar
               variant="desktop"
               sidebar={sidebar}
-              setSidebar={setSidebar}
+              setSidebar={setSidebarResetPage}
               globalCounts={globalFilterCounts}
               activeFilterCount={sidebarOnlyCount}
               onToggleDesktopCollapse={() => setDesktopSidebarCollapsed(true)}
@@ -475,12 +447,14 @@ function SearchContent() {
 
           <SearchResultsGrid
             items={items}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onPageChange={handlePageChange}
             loading={loading}
-            loadingMore={loadingMore}
             onOpenCard={openPanel}
             onTagFilter={onTagFilter}
             onMoreLikeThis={handleMoreLikeThis}
-            sentinelRef={sentinelRef}
             vibeMode={vibeMode}
             onExitVibe={exitVibe}
           />
@@ -515,7 +489,7 @@ function SearchContent() {
             <SearchFilterSidebar
               variant="mobile"
               sidebar={sidebar}
-              setSidebar={setSidebar}
+              setSidebar={setSidebarResetPage}
               globalCounts={globalFilterCounts}
               activeFilterCount={sidebarOnlyCount}
               onCloseMobile={() => setMobileFiltersOpen(false)}

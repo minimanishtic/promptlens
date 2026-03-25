@@ -120,7 +120,7 @@ export async function POST(req: Request) {
     const { query, similar_job_set_id, category, model, threshold = 0.5 } = body
     const { pills: filterPills, sidebar: filterSidebar } = pillSidebarFromBody(body)
     const offset = typeof body.offset === 'number' && body.offset >= 0 ? body.offset : 0
-    const limit = Math.min(typeof body.limit === 'number' && body.limit > 0 ? body.limit : 50, 80)
+    const limit = Math.min(typeof body.limit === 'number' && body.limit > 0 ? body.limit : 40, 80)
 
     const rpcCategory = category ?? filterPills.category ?? null
     const rpcModel = model ?? filterPills.model ?? null
@@ -200,7 +200,7 @@ export async function POST(req: Request) {
     const rpcRows: RpcRow[] = (rpcData as RpcRow[]) ?? []
 
     if (rpcRows.length === 0) {
-      return NextResponse.json({ results: [], query: queryEcho, hasMore: false })
+      return NextResponse.json({ results: [], query: queryEcho, totalCount: 0, hasMore: false })
     }
 
     // 3. Build a similarity lookup keyed by job_set_id
@@ -241,12 +241,13 @@ export async function POST(req: Request) {
     })
 
     const filtered = results.filter((g) => matchesSearchFilters(g, filterPills, filterSidebar))
+    const totalCount = filtered.length
     const page = filtered.slice(offset, offset + limit)
     const hasMore =
       page.length === limit &&
       (filtered.length > offset + limit || rpcRows.length >= rpcMatchCount)
 
-    return NextResponse.json({ results: page, query: queryEcho, hasMore })
+    return NextResponse.json({ results: page, query: queryEcho, totalCount, hasMore })
   } catch (err) {
     console.error('Semantic search error:', err)
     return NextResponse.json(
