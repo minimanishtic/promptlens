@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database, Generation } from '@/types/database'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
+import { getModelDisplayName } from '@/lib/search-filter-options'
+import {
+  BUILDER_CATEGORIES,
+  BUILDER_COMPOSITIONS,
+  BUILDER_LIGHTING,
+  BUILDER_MOODS,
+  BUILDER_VISUAL_STYLES,
+} from '@/lib/builder-taxonomy'
 
 const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +22,9 @@ export type StepName = 'category' | 'visual_style' | 'lighting' | 'mood' | 'comp
 
 export interface WizardOption {
   value: string
-  images: string[]          // 1-2 thumbnail URLs
+  label: string
+  description?: string
+  images: string[] // 1-2 thumbnail URLs
   count: number
   avg_views?: number
   recommended?: boolean
@@ -29,32 +39,14 @@ export interface WizardStepData {
 
 export interface BuilderResult {
   prompts: Generation[]
-  relaxedLevel: number   // 0 = exact match, 1 = dropped comp, 2 = dropped mood, 3 = dropped lighting
+  relaxedLevel: number // 0 = exact match, 1 = dropped comp, 2 = dropped mood, 3 = dropped lighting
 }
-
-// ── Step definitions ──────────────────────────────────────────────────────────
-
-const CATEGORIES = [
-  'Portrait & Headshot',
-  'Fashion & Style',
-  'Landscape & Nature',
-  'Architecture & Interior',
-  'Product & Commercial',
-  'Abstract & Artistic',
-  'Sports & Action',
-  'Food & Lifestyle',
-]
-
-const VISUAL_STYLES = ['Photorealistic', 'Editorial', 'Cinematic', 'Vintage/Film', 'Anime/Illustration', 'Raw/Candid']
-const LIGHTINGS     = ['Studio', 'Natural/Golden Hour', 'Flash/Harsh', 'Moody/Low-key', 'Neon/Colored', 'Backlit']
-const MOODS         = ['Warm', 'Cold', 'Dramatic', 'Intimate', 'Energetic', 'Nostalgic', 'Dark/Gritty', 'Clean/Minimal']
-const COMPOSITIONS  = ['Close-up', 'Medium Shot', 'Full Body', 'Wide/Establishing', 'Overhead/Flat Lay', 'POV/First Person']
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json() as {
+    const body = (await req.json()) as {
       action: 'step' | 'results'
       step?: StepName
       selections?: Record<string, string>
@@ -81,20 +73,20 @@ async function handleStep(step: StepName, selections: Record<string, string>): P
     case 'category':
       return fetchCategoryStep()
     case 'visual_style':
-      return fetchOptionStep('visual_style', VISUAL_STYLES, { primary_category: selections.category }, 2)
+      return fetchOptionStep('visual_style', BUILDER_VISUAL_STYLES, { primary_category: selections.category }, 2)
     case 'lighting':
-      return fetchOptionStep('lighting', LIGHTINGS, {
+      return fetchOptionStep('lighting', BUILDER_LIGHTING, {
         primary_category: selections.category,
         visual_style: selections.visual_style,
       }, 2)
     case 'mood':
-      return fetchOptionStep('mood', MOODS, {
+      return fetchOptionStep('mood', BUILDER_MOODS, {
         primary_category: selections.category,
         visual_style: selections.visual_style,
         lighting: selections.lighting,
       }, 2)
     case 'composition':
-      return fetchOptionStep('composition', COMPOSITIONS, {
+      return fetchOptionStep('composition', BUILDER_COMPOSITIONS, {
         primary_category: selections.category,
         visual_style: selections.visual_style,
         lighting: selections.lighting,
@@ -109,11 +101,11 @@ async function handleStep(step: StepName, selections: Record<string, string>): P
 
 async function fetchCategoryStep(): Promise<WizardStepData> {
   const options = await Promise.all(
-    CATEGORIES.map(async (cat) => {
+    BUILDER_CATEGORIES.map(async (cat) => {
       const { data, count } = await supabase
         .from('generations')
         .select('output_image_url_min, output_image_url', { count: 'exact' })
-        .eq('primary_category', cat)
+        .eq('primary_category', cat.value)
         .not('output_image_url', 'is', null)
         .order('sort_priority', { ascending: true })
         .order('views_count', { ascending: false })
@@ -121,20 +113,29 @@ async function fetchCategoryStep(): Promise<WizardStepData> {
 
       const row = data?.[0] as { output_image_url_min: string | null; output_image_url: string | null } | undefined
       const img = generationThumbnailUrl(row ?? {}) ?? ''
-      return { value: cat, images: img ? [img] : [], count: count ?? 0 }
+      return {
+        value: cat.value,
+        label: cat.label,
+        description: cat.description,
+        images: img ? [img] : [],
+        count: count ?? 0,
+      }
     }),
   )
   return { step: 'category', options }
 }
 
+type TaxonRow = { value: string; label: string; description: string }
+
 async function fetchOptionStep(
   column: string,
-  values: string[],
+  taxa: readonly TaxonRow[],
   filters: Record<string, string | undefined>,
   imageCount: number,
 ): Promise<WizardStepData> {
   const options = await Promise.all(
-    values.map(async (val) => {
+    taxa.map(async (meta) => {
+      const val = meta.value
       const allFilters = { ...filters, [column]: val }
 
       let q = supabase
@@ -154,7 +155,13 @@ async function fetchOptionStep(
         .map((r) => generationThumbnailUrl(r) ?? '')
         .filter(Boolean)
 
-      return { value: val, images, count: count ?? 0 }
+      return {
+        value: val,
+        label: meta.label,
+        description: meta.description,
+        images,
+        count: count ?? 0,
+      }
     }),
   )
   return { step: column as StepName, options }
@@ -194,6 +201,7 @@ async function fetchModelStep(selections: Record<string, string>): Promise<Wizar
   const options: WizardOption[] = [...agg.entries()]
     .map(([model, { total, count, imgs }]) => ({
       value: model,
+      label: getModelDisplayName(model),
       images: imgs,
       count,
       avg_views: Math.round(total / count),
@@ -210,7 +218,6 @@ async function fetchModelStep(selections: Record<string, string>): Promise<Wizar
 async function handleResults(selections: Record<string, string>): Promise<BuilderResult> {
   const { category, visual_style, lighting, mood, composition, model } = selections
 
-  // Try progressively relaxed filter sets
   type FilterSet = { relaxedLevel: number; [key: string]: string | undefined | number }
   const filterSets: FilterSet[] = [
     { primary_category: category, visual_style, lighting, mood, composition, model, relaxedLevel: 0 },

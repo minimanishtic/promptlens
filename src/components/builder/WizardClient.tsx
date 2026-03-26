@@ -5,9 +5,8 @@ import { ChevronRight, ArrowLeft } from 'lucide-react'
 import StepGrid from './StepGrid'
 import ResultPanel from './ResultPanel'
 import type { WizardOption, WizardStepData, BuilderResult, StepName } from '@/app/api/builder/route'
-import { MODEL_DISPLAY_NAMES } from '@/types/database'
-
-// ── Step config ───────────────────────────────────────────────────────────────
+import { STEP_EXPLAINERS, builderTaxonomyLabel } from '@/lib/builder-taxonomy'
+import { getModelDisplayName } from '@/lib/search-filter-options'
 
 interface StepConfig {
   key: StepName
@@ -19,24 +18,22 @@ interface StepConfig {
 }
 
 const STEPS: StepConfig[] = [
-  { key: 'category',     title: 'Category',      question: 'What are you creating?',  cols: 2, imageCount: 1 },
-  { key: 'visual_style', title: 'Visual Style',   question: 'What style?',             cols: 3, imageCount: 2 },
-  { key: 'lighting',     title: 'Lighting',       question: 'What lighting?',          cols: 3, imageCount: 2 },
-  { key: 'mood',         title: 'Mood',           question: 'What mood?',              cols: 3, imageCount: 2 },
-  { key: 'composition',  title: 'Composition',    question: 'What framing?',           cols: 3, imageCount: 2 },
-  { key: 'model',        title: 'Model',          question: 'Which model?',            cols: 3, imageCount: 2, isModelStep: true },
+  { key: 'category', title: 'Category', question: 'What are you creating?', cols: 2, imageCount: 1 },
+  { key: 'visual_style', title: 'Visual Style', question: 'What style?', cols: 3, imageCount: 2 },
+  { key: 'lighting', title: 'Lighting', question: 'What lighting?', cols: 3, imageCount: 2 },
+  { key: 'mood', title: 'Mood', question: 'What mood?', cols: 3, imageCount: 2 },
+  { key: 'composition', title: 'Composition', question: 'What framing?', cols: 3, imageCount: 2 },
+  { key: 'model', title: 'Model', question: 'Which model?', cols: 3, imageCount: 2, isModelStep: true },
 ]
 
-function displayValue(key: StepName, value: string) {
-  if (key === 'model') return MODEL_DISPLAY_NAMES[value] ?? value
-  return value
+function breadcrumbLabel(key: StepName, value: string) {
+  if (key === 'model') return getModelDisplayName(value)
+  return builderTaxonomyLabel(key, value)
 }
-
-// ── Progress bar ──────────────────────────────────────────────────────────────
 
 function ProgressBar({ currentStep, total }: { currentStep: number; total: number }) {
   return (
-      <div className="flex items-center gap-1 mb-8">
+    <div className="flex items-center gap-1 mb-8">
       {STEPS.map((step, i) => (
         <div key={step.key} className="flex items-center gap-1 flex-1">
           <div className="flex-1">
@@ -48,11 +45,15 @@ function ProgressBar({ currentStep, total }: { currentStep: number; total: numbe
               >
                 {i < currentStep ? '✓' : i + 1}
               </div>
-              <span className={`text-[11px] font-medium transition-colors hidden sm:block ${i === currentStep ? 'text-sky-300' : i < currentStep ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              <span
+                className={`text-[11px] font-medium transition-colors hidden sm:block ${i === currentStep ? 'text-sky-300' : i < currentStep ? 'text-zinc-400' : 'text-zinc-600'}`}
+              >
                 {step.title}
               </span>
             </div>
-            <div className={`h-0.5 rounded-full transition-all duration-500 ${i < currentStep ? 'bg-sky-500' : i === currentStep ? 'bg-sky-500/50' : 'bg-zinc-800'}`} />
+            <div
+              className={`h-0.5 rounded-full transition-all duration-500 ${i < currentStep ? 'bg-sky-500' : i === currentStep ? 'bg-sky-500/50' : 'bg-zinc-800'}`}
+            />
           </div>
           {i < total - 1 && <ChevronRight className="w-3 h-3 text-zinc-700 shrink-0 mb-1" />}
         </div>
@@ -61,12 +62,8 @@ function ProgressBar({ currentStep, total }: { currentStep: number; total: numbe
   )
 }
 
-// ── Breadcrumb ────────────────────────────────────────────────────────────────
-
 function Breadcrumb({ selections, steps }: { selections: Record<string, string>; steps: typeof STEPS }) {
-  const crumbs = steps
-    .filter((s) => selections[s.key])
-    .map((s) => displayValue(s.key, selections[s.key]))
+  const crumbs = steps.filter((s) => selections[s.key]).map((s) => breadcrumbLabel(s.key, selections[s.key]))
 
   if (crumbs.length === 0) return null
 
@@ -81,8 +78,6 @@ function Breadcrumb({ selections, steps }: { selections: Record<string, string>;
     </div>
   )
 }
-
-// ── Main wizard ───────────────────────────────────────────────────────────────
 
 export default function WizardClient() {
   const [currentStep, setCurrentStep] = useState(0)
@@ -117,48 +112,52 @@ export default function WizardClient() {
     fetchStep(0, {})
   }, [fetchStep])
 
-  const goToStep = useCallback((nextStep: number, newSelections: Record<string, string>, dir: 'forward' | 'back') => {
-    if (animating) return
-    setDirection(dir)
-    setAnimating(true)
-    setTimeout(() => {
-      setCurrentStep(nextStep)
-      setSelections(newSelections)
-      fetchStep(nextStep, newSelections)
-      setAnimating(false)
-      contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 200)
-  }, [animating, fetchStep])
+  const goToStep = useCallback(
+    (nextStep: number, newSelections: Record<string, string>, dir: 'forward' | 'back') => {
+      if (animating) return
+      setDirection(dir)
+      setAnimating(true)
+      setTimeout(() => {
+        setCurrentStep(nextStep)
+        setSelections(newSelections)
+        fetchStep(nextStep, newSelections)
+        setAnimating(false)
+        contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 200)
+    },
+    [animating, fetchStep],
+  )
 
-  const handleSelect = useCallback((value: string) => {
-    const stepKey = STEPS[currentStep].key
-    const newSelections = { ...selections, [stepKey]: value }
+  const handleSelect = useCallback(
+    (value: string) => {
+      const stepKey = STEPS[currentStep].key
+      const newSelections = { ...selections, [stepKey]: value }
 
-    if (currentStep < STEPS.length - 1) {
-      goToStep(currentStep + 1, newSelections, 'forward')
-    } else {
-      // Last step — fetch results
-      setSelections(newSelections)
-      setResultsLoading(true)
-      setShowResults(true)
-      fetch('/api/builder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'results', selections: newSelections }),
-      })
-        .then((r) => r.json())
-        .then((data: BuilderResult) => setResults(data))
-        .catch(console.error)
-        .finally(() => setResultsLoading(false))
-      contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }, [currentStep, selections, goToStep])
+      if (currentStep < STEPS.length - 1) {
+        goToStep(currentStep + 1, newSelections, 'forward')
+      } else {
+        setSelections(newSelections)
+        setResultsLoading(true)
+        setShowResults(true)
+        fetch('/api/builder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'results', selections: newSelections }),
+        })
+          .then((r) => r.json())
+          .then((data: BuilderResult) => setResults(data))
+          .catch(console.error)
+          .finally(() => setResultsLoading(false))
+        contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    },
+    [currentStep, selections, goToStep],
+  )
 
   const handleBack = useCallback(() => {
     if (showResults) {
       setShowResults(false)
       setResults(null)
-      // Stay on last step with current selections intact
       fetchStep(STEPS.length - 1, selections)
     } else if (currentStep > 0) {
       const prevSelections = { ...selections }
@@ -180,26 +179,27 @@ export default function WizardClient() {
   const currentConfig = STEPS[currentStep]
   const currentSelection = selections[currentConfig?.key] ?? ''
 
-  // Slide animation classes
   const slideClass = animating
-    ? direction === 'forward' ? 'opacity-0 translate-x-4' : 'opacity-0 -translate-x-4'
+    ? direction === 'forward'
+      ? 'opacity-0 translate-x-4'
+      : 'opacity-0 -translate-x-4'
     : 'opacity-100 translate-x-0'
+
+  const explainer = STEP_EXPLAINERS[currentConfig.key]
 
   return (
     <div ref={contentRef} className="scroll-mt-20">
       {!showResults ? (
         <>
-          {/* Progress */}
           <ProgressBar currentStep={currentStep} total={STEPS.length} />
 
-          {/* Breadcrumb */}
           <Breadcrumb selections={selections} steps={STEPS} />
 
-          {/* Step header */}
           <div className={`transition-all duration-200 ${slideClass}`}>
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-3">
               {currentStep > 0 && (
                 <button
+                  type="button"
                   onClick={handleBack}
                   className="flex items-center gap-1 text-sm text-zinc-400 hover:text-white transition-colors"
                 >
@@ -215,6 +215,13 @@ export default function WizardClient() {
               </div>
             </div>
 
+            <p
+              className="text-[14px] leading-relaxed mb-6 max-w-[600px]"
+              style={{ color: 'rgba(255,255,255,0.4)' }}
+            >
+              {explainer}
+            </p>
+
             <StepGrid
               options={stepData}
               selected={currentSelection}
@@ -228,8 +235,8 @@ export default function WizardClient() {
         </>
       ) : (
         <div className="animate-in fade-in duration-300">
-          {/* Back button above results */}
           <button
+            type="button"
             onClick={handleBack}
             className="flex items-center gap-1 text-sm text-zinc-400 hover:text-white transition-colors mb-6"
           >

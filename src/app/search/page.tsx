@@ -104,6 +104,7 @@ function SearchContent() {
   const inputRef = useRef<HTMLInputElement>(null)
   const mainListGenRef = useRef(0)
   const vibeFetchIdRef = useRef(0)
+  const builderHandoffAppliedRef = useRef(false)
 
   const filtersKey = useMemo(() => JSON.stringify({ q: qParam, pills, sidebar }), [qParam, pills, sidebar])
   const filtersKeyRef = useRef<string | null>(null)
@@ -117,6 +118,32 @@ function SearchContent() {
   useEffect(() => {
     setInputValue(qParam)
   }, [qParam])
+
+  /** Prompt builder → search: apply filters from URL once (category, visual_style, lighting, mood, composition, model). */
+  useEffect(() => {
+    if (builderHandoffAppliedRef.current) return
+    const cat = searchParams.get('category')
+    const vs = searchParams.get('visual_style')
+    const light = searchParams.get('lighting')
+    const md = searchParams.get('mood')
+    const comp = searchParams.get('composition')
+    const mod = searchParams.get('model')
+    if (!cat && !vs && !light && !md && !comp && !mod) return
+    builderHandoffAppliedRef.current = true
+    setCurrentPage(1)
+    setPills({
+      ...emptyPills,
+      category: cat || null,
+      visual_style: vs || null,
+      model: mod || null,
+    })
+    setSidebar({
+      ...emptySidebar,
+      lighting: light ? [light] : [],
+      mood: md ? [md] : [],
+      composition: comp ? [comp] : [],
+    })
+  }, [searchParams])
 
   useEffect(() => {
     let cancelled = false

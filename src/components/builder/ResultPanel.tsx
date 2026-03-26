@@ -5,8 +5,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Eye, Heart, Check, Copy, ExternalLink, ChevronDown, ChevronUp, RefreshCw, LayoutGrid, Info } from 'lucide-react'
 import type { Generation } from '@/types/database'
-import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
+import { getModelDisplayName } from '@/lib/search-filter-options'
 
 const RELAX_LABELS = [
   'Exact match',
@@ -74,7 +74,7 @@ function PromptResultCard({ gen, rank }: { gen: Generation; rank: number }) {
         <div className="flex flex-wrap items-center gap-2">
           {gen.model && (
             <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/20">
-              {MODEL_DISPLAY_NAMES[gen.model] ?? gen.model}
+              {getModelDisplayName(gen.model)}
             </span>
           )}
           {gen.visual_style && (
@@ -112,15 +112,14 @@ function PromptResultCard({ gen, rank }: { gen: Generation; rank: number }) {
 }
 
 export default function ResultPanel({ prompts, relaxedLevel, selections, onReset }: Props) {
-  // Build /browse URL with all selections as filters
-  const browseParams = new URLSearchParams()
-  if (selections.category) browseParams.set('category', selections.category)
-  if (selections.visual_style) browseParams.set('visual_style', selections.visual_style)
-  if (selections.lighting) browseParams.set('lighting', selections.lighting)
-  if (selections.mood) browseParams.set('mood', selections.mood)
-  if (selections.composition) browseParams.set('composition', selections.composition)
-  if (selections.model) browseParams.set('model', selections.model)
-  const browseUrl = `/browse?${browseParams.toString()}`
+  const searchParams = new URLSearchParams()
+  if (selections.category) searchParams.set('category', selections.category)
+  if (selections.visual_style) searchParams.set('visual_style', selections.visual_style)
+  if (selections.lighting) searchParams.set('lighting', selections.lighting)
+  if (selections.mood) searchParams.set('mood', selections.mood)
+  if (selections.composition) searchParams.set('composition', selections.composition)
+  if (selections.model) searchParams.set('model', selections.model)
+  const searchUrl = `/search?${searchParams.toString()}`
 
   // Selection pills
   const pills = [
@@ -129,7 +128,7 @@ export default function ResultPanel({ prompts, relaxedLevel, selections, onReset
     selections.lighting,
     selections.mood,
     selections.composition,
-    selections.model ? (MODEL_DISPLAY_NAMES[selections.model] ?? selections.model) : undefined,
+    selections.model ? getModelDisplayName(selections.model) : undefined,
   ].filter(Boolean) as string[]
 
   return (
@@ -150,7 +149,7 @@ export default function ResultPanel({ prompts, relaxedLevel, selections, onReset
               Start over
             </button>
             <Link
-              href={browseUrl}
+              href={searchUrl}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-colors"
             >
               <LayoutGrid className="w-4 h-4" />
