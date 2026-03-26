@@ -114,7 +114,8 @@ export default function WizardClient() {
 
   const goToStep = useCallback(
     (nextStep: number, newSelections: Record<string, string>, dir: 'forward' | 'back') => {
-      if (animating) return
+      // Only block rapid double-advance; always allow going back so Back never falls through to browser history.
+      if (animating && dir === 'forward') return
       setDirection(dir)
       setAnimating(true)
       setTimeout(() => {
