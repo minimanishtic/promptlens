@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import type { Session, User, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
+import { createClient } from '@/lib/supabase-client'
 
 interface AuthContextValue {
   user: User | null
@@ -38,15 +39,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authOpen, setAuthOpen] = useState(false)
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
 
-  // Lazy ref — the Supabase client module is only evaluated after first paint
   const clientRef = useRef<SupabaseClient<Database> | null>(null)
   const unsubRef = useRef<(() => void) | null>(null)
 
+  /** One browser client for the whole app (avoids multiple GoTrue instances). */
   function getClient(): SupabaseClient<Database> {
     if (!clientRef.current) {
-      // Dynamic require keeps supabase-client out of the synchronous module graph
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { createClient } = require('@/lib/supabase-client') as typeof import('@/lib/supabase-client')
       clientRef.current = createClient()
     }
     return clientRef.current

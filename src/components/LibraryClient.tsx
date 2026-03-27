@@ -157,7 +157,7 @@ function NewCollectionModal({ onClose, onCreate }: { onClose: () => void; onCrea
 // ── Main library client ───────────────────────────────────────────────────────
 
 export default function LibraryClient() {
-  const { user, openAuth } = useAuth()
+  const { user, session, openAuth } = useAuth()
   const [savedPrompts, setSavedPrompts] = useState<(SavedPrompt & { generation?: Generation })[]>([])
   const [collections, setCollections] = useState<PromptCollection[]>([])
   const [activeCollection, setActiveCollection] = useState<string | 'all'>('all')
@@ -176,22 +176,34 @@ export default function LibraryClient() {
     setLoading(true)
     setFetchError(null)
 
+    // Use JWT-backed session from the same client that performs queries (avoids empty RLS rows when context is ahead of cookies).
+    const {
+      data: { session: liveSession },
+      error: sessionErr,
+    } = await supabase.auth.getSession()
+    if (sessionErr) {
+      setFetchError(sessionErr.message)
+      setLoading(false)
+      return
+    }
+    if (!liveSession?.user) {
+      setFetchError('Session expired. Please sign in again.')
+      setSavedPrompts([])
+      setCollections([])
+      setLoading(false)
+      return
+    }
+    const uid = liveSession.user.id
+
     // ── 1. Fetch saved_prompts ────────────────────────────────────────────────
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const savedRes = await (supabase as any)
       .from('saved_prompts')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', uid)
       .order('created_at', { ascending: false })
 
-    console.log('[Library] saved_prompts response:', {
-      data: savedRes.data,
-      error: savedRes.error,
-      count: savedRes.data?.length,
-    })
-
     if (savedRes.error) {
-      console.error('[Library] saved_prompts error:', savedRes.error)
       setFetchError(savedRes.error.message)
       setLoading(false)
       return
@@ -202,7 +214,7 @@ export default function LibraryClient() {
     const collectionsRes = await (supabase as any)
       .from('prompt_collections')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', uid)
       .order('created_at', { ascending: true })
 
     setCollections((collectionsRes.data ?? []) as PromptCollection[])
@@ -217,14 +229,17 @@ export default function LibraryClient() {
 
     // ── 3. Enrich with generation records via job_set_id ──────────────────────
     const ids = [...new Set(saved.map((s: SavedPrompt) => s.job_set_id).filter(Boolean))]
-    console.log('[Library] fetching generations for job_set_ids:', ids)
 
     const { data: genData, error: genError } = await supabase
       .from('generations')
       .select('*')
       .in('job_set_id', ids)
 
-    console.log('[Library] generations response:', { data: genData, error: genError, count: genData?.length })
+    if (genError) {
+      setFetchError(genError.message)
+      setLoading(false)
+      return
+    }
 
     const genMap = new Map(
       ((genData as Generation[]) ?? []).map(g => [g.job_set_id, g]),
@@ -237,8 +252,7 @@ export default function LibraryClient() {
 
     setSavedPrompts(enriched)
     setLoading(false)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
+  }, [user, session?.access_token])
 
   useEffect(() => { loadData() }, [loadData])
 
