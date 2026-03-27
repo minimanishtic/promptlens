@@ -39,7 +39,9 @@ export default function StepGrid({
     <div className={gridClass}>
       {options.map((opt) => {
         const sub = isModelStep
-          ? `${opt.count.toLocaleString()} images · avg ${(opt.avg_views ?? 0).toLocaleString()} views`
+          ? opt.count > 0
+            ? `${opt.count.toLocaleString()} images · avg ${(opt.avg_views ?? 0).toLocaleString()} views`
+            : undefined
           : opt.description
 
         return (
