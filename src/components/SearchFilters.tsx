@@ -210,6 +210,7 @@ export function SearchStickyFilterBar({
   onOpenMobileFilters,
   mobileActiveCount,
   globalCounts,
+  onReverseUploadClick,
 }: {
   inputValue: string
   setInputValue: (v: string) => void
@@ -222,6 +223,8 @@ export function SearchStickyFilterBar({
   onOpenMobileFilters: () => void
   mobileActiveCount: number
   globalCounts: SearchGlobalFilterCounts | null
+  /** Opens file picker for image → prompt (e.g. /search reverse-engineer). */
+  onReverseUploadClick?: () => void
 }) {
   const modelOptions = useMemo(() => {
     const m = globalCounts?.model
@@ -261,9 +264,21 @@ export function SearchStickyFilterBar({
               placeholder="Search prompts…"
               className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/30 outline-none"
             />
-            <span className="inline-flex shrink-0 text-white/25" title="Upload (coming soon)">
-              <Upload className="h-4 w-4" aria-hidden />
-            </span>
+            {onReverseUploadClick ? (
+              <button
+                type="button"
+                onClick={onReverseUploadClick}
+                className="inline-flex shrink-0 text-white/50 transition-colors hover:text-white/85"
+                title="Upload image to extract a prompt"
+                aria-label="Upload image to extract prompt"
+              >
+                <Upload className="h-4 w-4" aria-hidden />
+              </button>
+            ) : (
+              <span className="inline-flex shrink-0 text-white/25" title="Upload (coming soon)">
+                <Upload className="h-4 w-4" aria-hidden />
+              </span>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

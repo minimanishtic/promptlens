@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Frown, Sparkles, Filter } from 'lucide-react'
 import TopNav from '@/components/TopNav'
@@ -12,6 +12,8 @@ import {
 } from '@/components/SearchFilters'
 import SearchResultsGrid from '@/components/SearchResultsGrid'
 import ImageSlidePanel from '@/components/ImageSlidePanel'
+import ReverseResultPanel, { type ReverseEngineerResult } from '@/components/ReverseResultPanel'
+import { resizeImage } from '@/lib/resize-image'
 import { supabase } from '@/lib/supabase'
 import type { Generation } from '@/types/database'
 import type { SemanticResult } from '@/app/api/search/route'
@@ -91,6 +93,13 @@ function SearchContent() {
   const [panelOpen, setPanelOpen] = useState(false)
   const [panelIndex, setPanelIndex] = useState(0)
   const [panelLeadItem, setPanelLeadItem] = useState<Generation | null>(null)
+
+  const [reverseOpen, setReverseOpen] = useState(false)
+  const [reverseLoading, setReverseLoading] = useState(false)
+  const [reverseResult, setReverseResult] = useState<ReverseEngineerResult | null>(null)
+  const [reversePreview, setReversePreview] = useState<string | null>(null)
+  const [reverseError, setReverseError] = useState<string | null>(null)
+  const reverseFileInputRef = useRef<HTMLInputElement>(null)
 
   const setPillsResetPage = useCallback((action: React.SetStateAction<SearchPillState>) => {
     setCurrentPage(1)
@@ -412,10 +421,102 @@ function SearchContent() {
     setPanelOpen(true)
   }
 
+  const closeReversePanel = useCallback(() => {
+    setReversePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return null
+    })
+    setReverseOpen(false)
+    setReverseLoading(false)
+    setReverseResult(null)
+    setReverseError(null)
+  }, [])
+
+  const handleReverseFile = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      setReversePreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return null
+      })
+      setReverseResult(null)
+      setReverseError('Please upload a JPG, PNG, or WebP image.')
+      setReverseLoading(false)
+      setReverseOpen(true)
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setReversePreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return null
+      })
+      setReverseResult(null)
+      setReverseError('Image too large. Max 10MB.')
+      setReverseLoading(false)
+      setReverseOpen(true)
+      return
+    }
+
+    setReversePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(file)
+    })
+    setReverseOpen(true)
+    setReverseLoading(true)
+    setReverseResult(null)
+    setReverseError(null)
+
+    try {
+      const resized = await resizeImage(file, 400)
+      const fd = new FormData()
+      fd.append('image', new File([resized], 'image.jpg', { type: 'image/jpeg' }))
+      const resp = await fetch('/api/reverse', { method: 'POST', body: fd })
+      const data = (await resp.json()) as { error?: string } & Partial<ReverseEngineerResult>
+      if (!resp.ok || data.error) {
+        setReverseError(data.error || 'Failed to analyze. Please try again.')
+        setReverseResult(null)
+        return
+      }
+      setReverseResult(data as ReverseEngineerResult)
+    } catch {
+      setReverseError('Failed to analyze image. Please try again.')
+      setReverseResult(null)
+    } finally {
+      setReverseLoading(false)
+    }
+  }, [])
+
+  const handleFindSimilarFromReverse = useCallback(
+    (prompt: string) => {
+      closeReversePanel()
+      setCurrentPage(1)
+      if (vibeMode) {
+        setVibeMode(false)
+        setVibeAnchorId(null)
+        setVibeSnapshot(null)
+      }
+      const q = prompt.trim()
+      router.replace(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
+    },
+    [closeReversePanel, vibeMode, router],
+  )
+
   const showTrendingHint = !qParam.trim() && !vibeMode
 
   return (
     <div className="flex min-h-screen flex-col bg-[#0A0A0A] text-white">
+      <input
+        ref={reverseFileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleReverseFile}
+        aria-hidden
+      />
       <TopNav />
       <SearchStickyFilterBar
         inputValue={inputValue}
@@ -429,6 +530,7 @@ function SearchContent() {
         onOpenMobileFilters={() => setMobileFiltersOpen(true)}
         mobileActiveCount={totalActiveFilterCount}
         globalCounts={globalFilterCounts}
+        onReverseUploadClick={() => reverseFileInputRef.current?.click()}
       />
 
       <div className="flex min-h-0 flex-1">
@@ -545,6 +647,16 @@ function SearchContent() {
             setPanelIndex(0)
           }
         }}
+      />
+
+      <ReverseResultPanel
+        open={reverseOpen}
+        onClose={closeReversePanel}
+        previewUrl={reversePreview}
+        loading={reverseLoading}
+        result={reverseResult}
+        error={reverseError}
+        onFindSimilar={handleFindSimilarFromReverse}
       />
     </div>
   )
