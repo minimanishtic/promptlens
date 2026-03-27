@@ -1,19 +1,31 @@
 import { NextResponse } from 'next/server'
+import { normalizeReversePayload } from '@/lib/prompt-formatters'
 
-const SYSTEM_PROMPT = `You are an expert AI image prompt engineer. Given an image, you reverse-engineer the exact prompt that could recreate it.
+const SYSTEM_PROMPT = `You are an expert AI image prompt engineer. Given an image, you reverse-engineer it into structured prompt elements.
 
 Return ONLY a JSON object with no markdown, no backticks, no explanation:
 {
-  "prompt": "The detailed prompt that could recreate this image. Include: subject description, setting, lighting, camera angle, lens, film stock/style, color palette, mood, and any specific technical details. Write it as a single flowing prompt paragraph, 150-300 words.",
-  "negative_prompt": "Things to avoid: list any artifacts or unwanted elements to exclude",
-  "visual_style": "one of: Photorealistic, Cinematic, Editorial, Vintage/Film, Raw/Candid, Anime/Illustration",
-  "lighting": "one of: Natural/Golden Hour, Studio, Flash/Harsh, Moody/Low-key, Neon/Colored, Backlit",
-  "mood": "one of: Warm, Cold, Dramatic, Dark/Gritty, Clean/Minimal, Energetic, Nostalgic, Intimate",
-  "composition": "one of: Close-up, Medium Shot, Full Body, Wide/Establishing, Overhead/Flat Lay, POV/First Person",
-  "camera": "one of: DSLR/Mirrorless, Smartphone/Selfie, Film Camera, Drone/Aerial, Vintage Point-and-Shoot, Security Cam/CCTV",
-  "category": "one of: Portrait & Headshot, Fashion & Editorial, Product Photography, Cinematic & Film Still, Street & Documentary, Fantasy & Creative, Landscape & Architecture, Identity Transform",
-  "suggested_models": ["list 1-3 AI models best suited for this style from: Nano Banana Pro, Soul v1, Soul v2, Flux Schnell, Flux Pro v1.1, Seedream, Seedream 4.5, AI Influencer, Cinematic Studio"]
-}`
+  "elements": {
+    "subject": "Detailed description of the main subject — who/what they are, appearance, clothing, features, materials. 2-3 sentences.",
+    "action_pose": "What the subject is doing, their pose, gesture, expression, body language. 1-2 sentences.",
+    "setting": "The environment, location, background, time of day, weather, surroundings. 1-2 sentences.",
+    "lighting": "Specific lighting description — direction, quality, color temperature, shadows, highlights. 1-2 sentences.",
+    "composition": "Camera angle, framing, depth of field, focal length, perspective, aspect ratio. 1-2 sentences.",
+    "style": "Art style, visual aesthetic, rendering approach, artistic references. 1-2 sentences.",
+    "mood": "Emotional tone, atmosphere, feeling, energy of the image. 1 sentence.",
+    "technical": "Camera/lens specs if photorealistic, render engine if 3D, resolution quality notes. 1 sentence."
+  },
+  "negative_prompt": "Things to avoid: common artifacts, unwanted elements. Comma-separated list.",
+  "category": "one of: Portrait & Headshot, Fashion & Editorial, Product Photography, Cinematic & Film Still, Street & Documentary, Fantasy & Creative, Landscape & Architecture, Identity Transform, Anime & Illustration, Abstract & Artistic",
+  "color_palette": ["#hex1", "#hex2", "#hex3", "#hex4", "#hex5"]
+}
+
+RULES:
+- Each element should be descriptive and specific, not vague
+- Use concrete visual language, not abstract concepts
+- Include real camera/lens names where appropriate (e.g., "85mm f/1.8", "Hasselblad X2D")
+- color_palette should be 5 dominant colors extracted from the image as hex codes
+- Write elements as standalone phrases/sentences, NOT as a combined prompt`
 
 const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
 const MAX_BYTES = 10 * 1024 * 1024
@@ -23,7 +35,7 @@ export async function POST(req: Request) {
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey || apiKey.trim() === '') {
       console.error('ANTHROPIC_API_KEY is not set')
-      return NextResponse.json({ error: 'Image analysis is not configured.' }, { status: 503 })
+      return NextResponse.json({ error: 'API key not configured' }, { status: 503 })
     }
 
     const formData = await req.formData()
@@ -53,7 +65,7 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 4096,
+        max_tokens: 2000,
         system: SYSTEM_PROMPT,
         messages: [
           {
@@ -65,7 +77,7 @@ export async function POST(req: Request) {
               },
               {
                 type: 'text',
-                text: 'Reverse-engineer this image into a detailed, production-ready prompt.',
+                text: 'Reverse-engineer this image into structured prompt elements.',
               },
             ],
           },
@@ -99,11 +111,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to parse analysis. Try again.' }, { status: 500 })
     }
 
-    if (!parsed || typeof parsed !== 'object' || typeof (parsed as { prompt?: unknown }).prompt !== 'string') {
+    const normalized = normalizeReversePayload(parsed)
+    if (!normalized) {
       return NextResponse.json({ error: 'Invalid analysis response. Try again.' }, { status: 500 })
     }
 
-    return NextResponse.json(parsed)
+    return NextResponse.json(normalized)
   } catch (error) {
     console.error('Reverse engineer error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -12,7 +12,8 @@ import {
 } from '@/components/SearchFilters'
 import SearchResultsGrid from '@/components/SearchResultsGrid'
 import ImageSlidePanel from '@/components/ImageSlidePanel'
-import ReverseResultPanel, { type ReverseEngineerResult } from '@/components/ReverseResultPanel'
+import ReverseResultPanel from '@/components/ReverseResultPanel'
+import { normalizeReversePayload, type ReverseResult } from '@/lib/prompt-formatters'
 import { resizeImage } from '@/lib/resize-image'
 import { supabase } from '@/lib/supabase'
 import type { Generation } from '@/types/database'
@@ -96,7 +97,7 @@ function SearchContent() {
 
   const [reverseOpen, setReverseOpen] = useState(false)
   const [reverseLoading, setReverseLoading] = useState(false)
-  const [reverseResult, setReverseResult] = useState<ReverseEngineerResult | null>(null)
+  const [reverseResult, setReverseResult] = useState<ReverseResult | null>(null)
   const [reversePreview, setReversePreview] = useState<string | null>(null)
   const [reverseError, setReverseError] = useState<string | null>(null)
   const reverseFileInputRef = useRef<HTMLInputElement>(null)
@@ -475,13 +476,20 @@ function SearchContent() {
       const fd = new FormData()
       fd.append('image', new File([resized], 'image.jpg', { type: 'image/jpeg' }))
       const resp = await fetch('/api/reverse', { method: 'POST', body: fd })
-      const data = (await resp.json()) as { error?: string } & Partial<ReverseEngineerResult>
+      const raw = (await resp.json()) as unknown
+      const data = raw as { error?: string }
       if (!resp.ok || data.error) {
-        setReverseError(data.error || 'Failed to analyze. Please try again.')
+        setReverseError(typeof data.error === 'string' ? data.error : 'Failed to analyze. Please try again.')
         setReverseResult(null)
         return
       }
-      setReverseResult(data as ReverseEngineerResult)
+      const normalized = normalizeReversePayload(raw)
+      if (!normalized) {
+        setReverseError('Invalid analysis response. Try again.')
+        setReverseResult(null)
+        return
+      }
+      setReverseResult(normalized)
     } catch {
       setReverseError('Failed to analyze image. Please try again.')
       setReverseResult(null)
@@ -492,7 +500,6 @@ function SearchContent() {
 
   const handleFindSimilarFromReverse = useCallback(
     (prompt: string) => {
-      closeReversePanel()
       setCurrentPage(1)
       if (vibeMode) {
         setVibeMode(false)
@@ -502,7 +509,7 @@ function SearchContent() {
       const q = prompt.trim()
       router.replace(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
     },
-    [closeReversePanel, vibeMode, router],
+    [vibeMode, router],
   )
 
   const showTrendingHint = !qParam.trim() && !vibeMode
@@ -653,10 +660,10 @@ function SearchContent() {
         open={reverseOpen}
         onClose={closeReversePanel}
         previewUrl={reversePreview}
-        loading={reverseLoading}
+        isLoading={reverseLoading}
         result={reverseResult}
         error={reverseError}
-        onFindSimilar={handleFindSimilarFromReverse}
+        onSearchWithPrompt={handleFindSimilarFromReverse}
       />
     </div>
   )
