@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Prompt Templates | PromptLens',
     description:
-      'Browse the best prompts from 7,400+ AI-generated images, organised by category. Filter by model, copy with one click.',
+      'Browse the best prompts from 6,800+ AI-generated images, organised by category. Filter by model, copy with one click.',
   },
 }
 

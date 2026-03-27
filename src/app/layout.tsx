@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: "%s | PromptLens",
   },
   description:
-    "Browse 7,400+ AI-generated images classified by style, lighting, and mood. Find the exact prompt, model, and settings that produce the results you want.",
+    "Browse 6,800+ AI-generated images classified by style, lighting, and mood. Find the exact prompt, model, and settings that produce the results you want.",
   metadataBase: new URL("https://promptlens-two.vercel.app"),
   icons: {
     icon: "/favicon.svg",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PromptLens — Stop Guessing. Start Directing.",
     description:
-      "Browse 7,400+ AI-generated images. Find the exact prompt and settings that produce the results you want.",
+      "Browse 6,800+ AI-generated images. Find the exact prompt and settings that produce the results you want.",
     url: "https://promptlens-two.vercel.app",
     siteName: "PromptLens",
     images: [
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PromptLens — Stop Guessing. Start Directing.",
     description:
-      "Browse 7,400+ AI-generated images. Find the exact prompt and settings that work.",
+      "Browse 6,800+ AI-generated images. Find the exact prompt and settings that work.",
     images: ["/og-image.png"],
   },
 };

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Prompt Builder Wizard | PromptLens',
     description:
-      'A guided 6-step wizard that helps you craft the ideal AI image prompt using real examples from 7,400+ community generations.',
+      'A guided 6-step wizard that helps you craft the ideal AI image prompt using real examples from 6,800+ community generations.',
   },
 }
 

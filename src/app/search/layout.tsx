@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Search',
   description:
-    'Search across 7,400+ AI-generated image prompts. Find the exact wording, model, and style settings behind any result.',
+    'Search across 6,800+ AI-generated image prompts. Find the exact wording, model, and style settings behind any result.',
   openGraph: {
     title: 'Search Prompts | PromptLens',
     description:
