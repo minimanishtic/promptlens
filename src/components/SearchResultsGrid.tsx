@@ -82,7 +82,7 @@ export default function SearchResultsGrid({
       {showSkeleton ? (
         <div className="search-grid" aria-busy="true" aria-label="Loading results">
           {Array.from({ length: SKELETON_PLACEHOLDERS }).map((_, i) => (
-            <div key={i} className="search-card">
+            <div key={i} className="search-card w-full">
               <div className="aspect-[3/4] animate-pulse rounded-lg bg-white/[0.03]" />
             </div>
           ))}
@@ -92,7 +92,7 @@ export default function SearchResultsGrid({
       ) : (
         <div className="search-grid">
           {items.map((item) => (
-            <div key={item.id} className="search-card">
+            <div key={item.id} className="search-card w-full">
               <SearchAssetCard
                 item={item}
                 onOpen={onOpenCard}

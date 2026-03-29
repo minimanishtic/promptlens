@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import Image from 'next/image'
 import { Bookmark, Clipboard, Sparkles } from 'lucide-react'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
 import { getModelDisplayName, type SearchGridItem } from '@/lib/search-filter-options'
@@ -36,13 +37,15 @@ interface Props {
   onMoreLikeThis: (item: SearchGridItem) => void
 }
 
-function imageAspectRatioStyle(item: SearchGridItem): CSSProperties {
-  const w = item.width
-  const h = item.height
-  if (typeof w === 'number' && typeof h === 'number' && w > 0 && h > 0) {
-    return { aspectRatio: `${w} / ${h}` }
+/** Intrinsic size for next/image so column layout reserves height before decode (flow layout, not absolute fill). */
+function thumbnailLayoutDimensions(item: SearchGridItem): { w: number; h: number } {
+  const iw = item.width
+  const ih = item.height
+  if (typeof iw === 'number' && typeof ih === 'number' && iw > 0 && ih > 0) {
+    const base = 480
+    return { w: base, h: Math.max(1, Math.round((base * ih) / iw)) }
   }
-  return { aspectRatio: '3 / 4' }
+  return { w: 480, h: 640 }
 }
 
 export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeThis }: Props) {
@@ -51,7 +54,7 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
   const [imgLoaded, setImgLoaded] = useState(false)
-  const aspectStyle = imageAspectRatioStyle(item)
+  const layoutDims = thumbnailLayoutDimensions(item)
 
   useEffect(() => {
     setImgLoaded(false)
@@ -140,20 +143,26 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
           onOpen(item)
         }
       }}
-      className="group relative cursor-pointer overflow-hidden rounded-lg border border-white/[0.06] outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+      className="group relative w-full cursor-pointer overflow-hidden rounded-lg border border-white/[0.06] outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 [break-inside:avoid]"
     >
-      <div
-        className="relative w-full overflow-hidden rounded-lg bg-white/[0.04]"
-        style={aspectStyle}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+      <div className="relative w-full min-h-[1px] overflow-hidden rounded-lg bg-white/[0.06]">
+        {!imgLoaded && (
+          <div
+            className="absolute inset-0 z-[1] animate-pulse bg-white/[0.08]"
+            aria-hidden
+          />
+        )}
+        <Image
           src={thumb}
           alt=""
+          width={layoutDims.w}
+          height={layoutDims.h}
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 34vw, (max-width: 1280px) 25vw, 20vw"
+          className={`relative z-[2] h-auto w-full object-cover transition-opacity duration-300 ease-out ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+          unoptimized
           loading="lazy"
           decoding="async"
           onLoad={() => setImgLoaded(true)}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ease-out ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
         />
       </div>
 
