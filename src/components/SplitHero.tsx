@@ -1,7 +1,12 @@
 'use client'
 
+import { useCallback, useRef, useState, type ChangeEvent } from 'react'
 import Link from 'next/link'
-import { Search, Mountain } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Search, Upload } from 'lucide-react'
+import ReverseResultPanel from '@/components/ReverseResultPanel'
+import { normalizeReversePayload, type ReverseResult } from '@/lib/prompt-formatters'
+import { resizeImage } from '@/lib/resize-image'
 
 export interface SplitHeroProps {
   bgUrls: string[]
@@ -26,7 +31,91 @@ function OrBadge({ className, mobile }: { className?: string; mobile?: boolean }
 }
 
 export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
+  const router = useRouter()
   const cells = padGridUrls(bgUrls.slice(0, 32), 18)
+
+  const [reverseResult, setReverseResult] = useState<ReverseResult | null>(null)
+  const [reverseLoading, setReverseLoading] = useState(false)
+  const [reversePreview, setReversePreview] = useState<string | null>(null)
+  const [showReversePanel, setShowReversePanel] = useState(false)
+  const [reverseError, setReverseError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const closeReversePanel = useCallback(() => {
+    setReversePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return null
+    })
+    setShowReversePanel(false)
+    setReverseLoading(false)
+    setReverseResult(null)
+    setReverseError(null)
+  }, [])
+
+  const handleReverseUpload = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      setReversePreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return null
+      })
+      setReverseResult(null)
+      setReverseError('Please upload a JPG, PNG, or WebP image.')
+      setReverseLoading(false)
+      setShowReversePanel(true)
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setReversePreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return null
+      })
+      setReverseResult(null)
+      setReverseError('Image too large. Max 10MB.')
+      setReverseLoading(false)
+      setShowReversePanel(true)
+      return
+    }
+
+    setReversePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(file)
+    })
+    setShowReversePanel(true)
+    setReverseLoading(true)
+    setReverseResult(null)
+    setReverseError(null)
+
+    try {
+      const resized = await resizeImage(file, 400)
+      const formData = new FormData()
+      formData.append('image', new File([resized], 'image.jpg', { type: 'image/jpeg' }))
+      const resp = await fetch('/api/reverse', { method: 'POST', body: formData })
+      const raw = (await resp.json()) as unknown
+      const data = raw as { error?: string }
+      if (!resp.ok || data.error) {
+        setReverseError(typeof data.error === 'string' ? data.error : 'Failed to analyze. Please try again.')
+        setReverseResult(null)
+        return
+      }
+      const normalized = normalizeReversePayload(raw)
+      if (!normalized) {
+        setReverseError('Invalid analysis response. Try again.')
+        setReverseResult(null)
+        return
+      }
+      setReverseResult(normalized)
+    } catch {
+      setReverseError('Failed to analyze image. Please try again.')
+      setReverseResult(null)
+    } finally {
+      setReverseLoading(false)
+    }
+  }, [])
 
   return (
     <section className="relative flex min-h-0 flex-1 flex-col md:flex-row md:min-h-[calc(90vh-3.5rem)]">
@@ -62,10 +151,12 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
       </div>
 
       {/* Left pane — search journey */}
-      <Link
-        href="/search"
-        className="group relative z-[20] flex min-h-[45vh] flex-1 flex-col justify-center border-b border-white/[0.06] px-4 py-10 transition-[flex] duration-500 ease-in-out hover:flex-[1.12] sm:px-5 md:min-h-0 md:border-b-0 md:px-5 md:py-16 md:hover:flex-[1.12] active:scale-[0.995]"
-      >
+      <div className="group relative z-[20] flex min-h-[45vh] flex-1 flex-col justify-center border-b border-white/[0.06] px-4 py-10 transition-[flex] duration-500 ease-in-out hover:flex-[1.12] sm:px-5 md:min-h-0 md:border-b-0 md:px-5 md:py-16 md:hover:flex-[1.12] active:scale-[0.995]">
+        <Link
+          href="/search"
+          className="absolute inset-0 z-[25]"
+          aria-label="Go to search"
+        />
         <div
           className="pointer-events-none absolute inset-0 z-[2]"
           style={{
@@ -73,60 +164,75 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
               'linear-gradient(160deg, rgba(30,8,8,0.7) 0%, rgba(15,4,4,0.85) 50%, rgba(10,5,5,0.93) 85%)',
           }}
         />
-        <div className="relative z-[30] ml-auto flex w-full max-w-[min(100%,32.4rem)] flex-col pl-3 pr-5 sm:pl-4 sm:pr-6 md:max-w-[min(calc(50vw-2.5rem),37.8rem)] md:pl-5 md:pr-10 lg:max-w-[min(calc(50vw-2rem),39.6rem)]">
-          <div className="rounded-xl border border-[rgba(220,38,38,0.25)] bg-[rgba(220,38,38,0.08)] px-4 py-4 transition-colors group-hover:border-[rgba(220,38,38,0.4)] md:px-[1.35rem] md:py-[1.125rem]">
+        <div className="pointer-events-none relative z-[30] ml-auto flex w-full max-w-[min(100%,32.4rem)] flex-col pl-3 pr-5 sm:pl-4 sm:pr-6 md:max-w-[min(calc(50vw-2.5rem),37.8rem)] md:pl-5 md:pr-10 lg:max-w-[min(calc(50vw-2rem),39.6rem)]">
+          <div className="pointer-events-auto rounded-xl border border-[rgba(220,38,38,0.25)] bg-[rgba(220,38,38,0.08)] px-4 py-4 transition-colors group-hover:border-[rgba(220,38,38,0.4)] md:px-[1.35rem] md:py-[1.125rem]">
             <div className="flex items-center gap-2.5">
-              <Search
-                className="h-5 w-5 shrink-0 text-[rgba(255,100,100,0.4)]"
-                strokeWidth={2}
-                aria-hidden
-              />
-              <span className="flex min-w-0 flex-1 items-center text-[15px] text-[rgba(255,140,140,0.3)] md:text-[1.0125rem]">
-                <span className="truncate">golden hour portrait with bokeh</span>
-                <span
-                  className="ml-0.5 inline-block h-4 w-px shrink-0 bg-[rgba(220,38,38,0.5)] animate-hero-cursor-blink"
+              <Link href="/search" className="flex min-w-0 flex-1 items-center gap-2.5">
+                <Search
+                  className="h-5 w-5 shrink-0 text-[rgba(255,100,100,0.4)]"
+                  strokeWidth={2}
                   aria-hidden
                 />
-              </span>
-              <span className="h-4 w-px shrink-0 bg-[rgba(255,100,100,0.15)]" aria-hidden />
-              <Mountain
-                className="h-5 w-5 shrink-0 text-[rgba(255,120,120,0.35)] transition-colors group-hover:text-[rgba(255,120,120,0.7)]"
-                strokeWidth={2}
-                aria-hidden
-              />
+                <span className="flex min-w-0 flex-1 items-center text-[15px] text-[rgba(255,140,140,0.3)] md:text-[1.0125rem]">
+                  <span className="truncate">golden hour portrait with bokeh</span>
+                  <span
+                    className="ml-0.5 inline-block h-4 w-px shrink-0 bg-[rgba(220,38,38,0.5)] animate-hero-cursor-blink"
+                    aria-hidden
+                  />
+                </span>
+                <span className="h-4 w-px shrink-0 bg-[rgba(255,100,100,0.15)]" aria-hidden />
+              </Link>
+              <button
+                type="button"
+                title="Upload image to reverse-engineer"
+                aria-label="Upload image to reverse-engineer"
+                onClick={(ev) => {
+                  ev.preventDefault()
+                  ev.stopPropagation()
+                  fileInputRef.current?.click()
+                }}
+                className="shrink-0 rounded-md p-0.5 text-[rgba(255,120,120,0.35)] transition-colors hover:text-[rgba(255,120,120,0.85)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(220,38,38,0.5)]"
+              >
+                <Upload className="h-5 w-5" strokeWidth={2} aria-hidden />
+              </button>
             </div>
           </div>
-          <p className="mt-2 text-[10px] text-[rgba(255,140,140,0.22)] md:text-[11px]">
-            or drop a reference image to reverse-engineer its prompt
-          </p>
-          <div className="mt-[1.125rem] flex flex-wrap gap-1.5">
-            {['cinematic rain scene', 'product flat-lay', 'neon street portrait'].map((t) => (
-              <span
-                key={t}
-                className="rounded-2xl border border-[rgba(220,38,38,0.2)] px-3.5 py-1.5 text-[11px] text-[rgba(255,140,140,0.5)] transition-colors hover:border-[rgba(220,38,38,0.45)] md:text-xs"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-          <span className="mt-6 w-fit rounded-[20px] border border-[rgba(220,38,38,0.4)] px-3 py-1 text-xs font-medium uppercase tracking-[0.15em] text-[rgba(255,140,140,0.7)]">
-            The search engine
-          </span>
-          <h2 className="font-hero-display mt-3.5 text-[2.25rem] font-extrabold leading-[1.05] tracking-[-0.03em] text-white sm:text-[2.475rem] md:text-[3.375rem] lg:text-[3.6rem]">
-            I know what I want
-          </h2>
-          <p className="mt-3.5 max-w-none text-base leading-[1.7] text-[rgba(255,200,200,0.5)] md:text-lg md:leading-relaxed">
-            Describe any visual in plain English or drop a reference image. Get the exact prompt, model,
-            and settings to recreate it.
-          </p>
-          <span className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#dc2626] px-7 py-3.5 text-base font-semibold tracking-[0.02em] text-white transition-transform group-hover:-translate-y-px group-active:scale-[0.97] md:px-9 md:py-4">
+          <Link href="/search" className="pointer-events-auto mt-2 block text-left">
+            <p className="text-[10px] text-[rgba(255,140,140,0.22)] md:text-[11px]">
+              Use search or reverse-engineer an existing image
+            </p>
+            <div className="mt-[1.125rem] flex flex-wrap gap-1.5">
+              {['cinematic rain scene', 'product flat-lay', 'neon street portrait'].map((t) => (
+                <span
+                  key={t}
+                  className="rounded-2xl border border-[rgba(220,38,38,0.2)] px-3.5 py-1.5 text-[11px] text-[rgba(255,140,140,0.5)] transition-colors hover:border-[rgba(220,38,38,0.45)] md:text-xs"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+            <span className="mt-6 inline-block w-fit rounded-[20px] border border-[rgba(220,38,38,0.4)] px-3 py-1 text-xs font-medium uppercase tracking-[0.15em] text-[rgba(255,140,140,0.7)]">
+              The search engine
+            </span>
+            <h2 className="font-hero-display mt-3.5 text-[2.25rem] font-extrabold leading-[1.05] tracking-[-0.03em] text-white sm:text-[2.475rem] md:text-[3.375rem] lg:text-[3.6rem]">
+              I know what I want
+            </h2>
+            <p className="mt-3.5 max-w-none text-base leading-[1.7] text-[rgba(255,200,200,0.5)] md:text-lg md:leading-relaxed">
+              Describe any visual in plain English or drop a reference image. Get the exact prompt, model,
+              and settings to recreate it.
+            </p>
+          </Link>
+          <Link
+            href="/search"
+            className="pointer-events-auto relative z-[30] mt-6 flex w-full items-center justify-center rounded-xl bg-[#dc2626] px-7 py-3.5 text-base font-semibold tracking-[0.02em] text-white transition-transform group-hover:-translate-y-px group-active:scale-[0.97] md:px-9 md:py-4"
+          >
             Find my prompt →
-          </span>
+          </Link>
         </div>
         <span className="absolute bottom-4 right-4 z-[30] text-[11px] text-[rgba(255,120,120,0.3)] sm:text-xs md:bottom-6 md:right-6">
           {promptsIndexed.toLocaleString()} prompts indexed
         </span>
-      </Link>
+      </div>
 
       {/* Mobile divider + or */}
       <div className="relative z-[40] flex h-14 shrink-0 items-center justify-center bg-[#060606] md:hidden">
@@ -221,6 +327,28 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
           5 steps to your prompt
         </span>
       </Link>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={(ev) => void handleReverseUpload(ev)}
+        className="hidden"
+        aria-hidden
+      />
+
+      <ReverseResultPanel
+        open={showReversePanel}
+        onClose={closeReversePanel}
+        previewUrl={reversePreview}
+        isLoading={reverseLoading}
+        result={reverseResult}
+        error={reverseError}
+        onSearchWithPrompt={(prompt) => {
+          const q = prompt.trim()
+          router.push(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
+        }}
+      />
     </section>
   )
 }
