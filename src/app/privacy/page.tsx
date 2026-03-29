@@ -3,7 +3,7 @@ import LegalPageShell from '@/components/LegalPageShell'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Privacy Policy for PromptLens, operated by Konvert Media.',
+  description: 'Privacy Policy for Promere, operated by Konvert Media.',
   robots: { index: true, follow: true },
 }
 
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
       <p className="text-sm text-zinc-500 -mt-4 mb-8">Last updated: March 2026</p>
 
       <Section title="Data We Collect">
-        <p>Depending on how you use PromptLens, we may collect:</p>
+        <p>Depending on how you use Promere, we may collect:</p>
         <ul className="list-disc pl-6 space-y-2">
           <li>
             <strong className="text-zinc-200">Account data:</strong> email address and Google profile
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
       <Section title="How We Use Data">
         <p>We use this information to:</p>
         <ul className="list-disc pl-6 space-y-2">
-          <li>Provide, operate, and improve PromptLens.</li>
+          <li>Provide, operate, and improve Promere.</li>
           <li>Improve search relevance and product experience.</li>
           <li>Personalize your library and saved content.</li>
           <li>Measure traffic and marketing effectiveness where applicable.</li>
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
 
       <Section title="Children's Privacy">
         <p>
-          PromptLens is not intended for users under 13. We do not knowingly collect personal
+          Promere is not intended for users under 13. We do not knowingly collect personal
           information from children under 13. If you believe we have collected such information, please
           contact us so we can delete it.
         </p>

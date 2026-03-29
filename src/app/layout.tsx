@@ -19,30 +19,32 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_TITLE = "Promere — The Prompt Intelligence Platform";
+const SITE_DESCRIPTION =
+  "Search, reverse-engineer, organize, and connect your AI prompts. The command center for AI image creators.";
+
 export const metadata: Metadata = {
   title: {
-    default: "PromptLens — Stop Guessing. Start Directing.",
-    template: "%s | PromptLens",
+    default: SITE_TITLE,
+    template: "%s | Promere",
   },
-  description:
-    "Browse 6,800+ AI-generated images classified by style, lighting, and mood. Find the exact prompt, model, and settings that produce the results you want.",
+  description: SITE_DESCRIPTION,
   metadataBase: new URL("https://promptlens-two.vercel.app"),
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
   },
   openGraph: {
-    title: "PromptLens — Stop Guessing. Start Directing.",
-    description:
-      "Browse 6,800+ AI-generated images. Find the exact prompt and settings that produce the results you want.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     url: "https://promptlens-two.vercel.app",
-    siteName: "PromptLens",
+    siteName: "Promere",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "PromptLens — AI Prompt Intelligence Tool",
+        alt: "Promere — The prompt intelligence platform",
       },
     ],
     locale: "en_US",
@@ -50,9 +52,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "PromptLens — Stop Guessing. Start Directing.",
-    description:
-      "Browse 6,800+ AI-generated images. Find the exact prompt and settings that work.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     images: ["/og-image.png"],
   },
 };

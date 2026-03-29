@@ -85,7 +85,7 @@ export default function MobileNav() {
         {/* Drawer header */}
         <div className="flex items-center justify-between px-5 h-14 border-b border-zinc-800/80 shrink-0">
           <span className="text-base font-bold tracking-tight">
-            Prompt<span className="text-sky-400">Lens</span>
+            Pro<span className="text-sky-400">mere</span>
           </span>
           <button
             onClick={close}

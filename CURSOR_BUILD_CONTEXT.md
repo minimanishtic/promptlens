@@ -1,7 +1,7 @@
-# PromptLens — Cursor Build Context
+# Promere — Cursor Build Context
 
 ## WHAT THIS IS
-PromptLens is a visual prompt intelligence tool for AI image generation. It helps creators find the right prompt, model, style, and settings by browsing 6,846 real community-generated images from Higgsfield AI, all classified by visual category.
+Promere is a visual prompt intelligence tool for AI image generation. It helps creators find the right prompt, model, style, and settings by browsing 6,846 real community-generated images from Higgsfield AI, all classified by visual category.
 
 ## TECH STACK
 - **Frontend:** Next.js 15 (App Router) + TypeScript + Tailwind CSS

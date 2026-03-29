@@ -18,13 +18,13 @@ const db = createClient<Database>(
 )
 
 export const metadata: Metadata = {
-  title: 'PromptLens — Visual Prompt Intelligence',
+  title: 'Promere — The Prompt Intelligence Platform',
   description:
-    'Browse 6,800+ AI-generated images across multiple platforms. Stop guessing — find the exact prompt, model, and settings that produce the results you want.',
+    'Search, reverse-engineer, organize, and connect your AI prompts. The command center for AI image creators. Browse 6,800+ AI-generated images across multiple platforms.',
   openGraph: {
-    title: 'PromptLens — Visual Prompt Intelligence',
+    title: 'Promere — The Prompt Intelligence Platform',
     description:
-      'Browse 6,800+ AI-generated images. Find the exact prompt, model, and settings.',
+      'Search, reverse-engineer, organize, and connect your AI prompts. Browse 6,800+ community images.',
     url: 'https://promptlens-two.vercel.app',
   },
 }

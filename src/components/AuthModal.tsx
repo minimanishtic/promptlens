@@ -126,7 +126,7 @@ export default function AuthModal() {
         {/* Logo */}
         <div className="mb-6">
           <p className="text-lg font-bold tracking-tight">
-            Prompt<span className="text-sky-400">Lens</span>
+            Pro<span className="text-sky-400">mere</span>
           </p>
           <h2 className="text-xl font-bold text-white mt-3">
             {mode === 'login' ? 'Welcome back' : 'Create your account'}

@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description:
     'Search across 6,800+ AI-generated image prompts. Find the exact wording, model, and style settings behind any result.',
   openGraph: {
-    title: 'Search Prompts | PromptLens',
+    title: 'Search Prompts | Promere',
     description:
       'Full-text search across thousands of real AI image generation prompts.',
   },

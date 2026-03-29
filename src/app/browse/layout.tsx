@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description:
     'Filter and explore 6,800+ AI-generated images by category, model, visual style, lighting, mood, and more.',
   openGraph: {
-    title: 'Browse AI Images | PromptLens',
+    title: 'Browse AI Images | Promere',
     description:
       'Filter by category, model, visual style, lighting, and more across 6,800+ community images.',
   },

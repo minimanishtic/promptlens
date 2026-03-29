@@ -248,7 +248,7 @@ export default function ImageSlidePanel({
             )}
             <div className="flex gap-2">
               <span className="text-white/40">Platform</span>
-              <span className="text-white/70">PromptLens</span>
+              <span className="text-white/70">Promere</span>
             </div>
             {gen.quality && (
               <div className="flex gap-2">

@@ -23,7 +23,7 @@ export default function TopNav() {
           <span
             className="truncate text-[15px] font-medium tracking-[0.5px] text-white"
           >
-            PromptLens
+            Promere
           </span>
         </Link>
 

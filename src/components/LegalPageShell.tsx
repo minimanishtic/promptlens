@@ -14,7 +14,7 @@ export default function LegalPageShell({
       <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-md">
         <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center gap-4">
           <Link href="/" className="text-lg font-bold text-white shrink-0">
-            Prompt<span className="text-sky-400">Lens</span>
+            Pro<span className="text-sky-400">mere</span>
           </Link>
           <span className="text-zinc-700 hidden sm:block">|</span>
           <nav className="hidden sm:flex items-center gap-4 text-sm text-zinc-400">
@@ -52,7 +52,7 @@ export default function LegalPageShell({
           href="/"
           className="text-sm text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1 mb-8"
         >
-          ← Back to PromptLens
+          ← Back to Promere
         </Link>
         <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-10">{title}</h1>
         <div className="space-y-12">{children}</div>
