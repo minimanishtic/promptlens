@@ -94,7 +94,9 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'likes_count', label: 'Most Liked' },
 ]
 
-const GRID_SIZES = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw'
+/** Match SearchAssetCard `sizes` for column masonry column widths */
+const MASONRY_SIZES =
+  '(max-width: 768px) 50vw, (max-width: 1024px) 34vw, (max-width: 1280px) 25vw, 20vw'
 
 function BrowseContent() {
   const searchParams = useSearchParams()
@@ -365,11 +367,13 @@ function BrowseContent() {
             </div>
           )}
 
-          {/* Grid */}
+          {/* Masonry — same CSS columns as /search (globals: .search-grid / .search-card) */}
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+            <div className="search-grid" aria-busy="true" aria-label="Loading images">
               {Array.from({ length: 24 }).map((_, i) => (
-                <ImageCardSkeleton key={i} />
+                <div key={i} className="search-card w-full">
+                  <ImageCardSkeleton />
+                </div>
               ))}
             </div>
           ) : images.length === 0 ? (
@@ -388,17 +392,22 @@ function BrowseContent() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+            <div className="search-grid">
               {images.map((image, i) => (
-                <ImageCard
-                  key={image.id}
-                  image={image}
-                  priority={i < 6}
-                  sizes={GRID_SIZES}
-                />
+                <div key={image.id} className="search-card w-full">
+                  <ImageCard
+                    image={image}
+                    priority={i < 6}
+                    sizes={MASONRY_SIZES}
+                  />
+                </div>
               ))}
               {loadingMore &&
-                Array.from({ length: 6 }).map((_, i) => <ImageCardSkeleton key={`more-${i}`} />)}
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={`more-${i}`} className="search-card w-full">
+                    <ImageCardSkeleton />
+                  </div>
+                ))}
             </div>
           )}
 

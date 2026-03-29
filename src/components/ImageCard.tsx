@@ -41,7 +41,7 @@ const MODEL_COLORS: Record<string, string> = {
 export default function ImageCard({
   image,
   priority = false,
-  sizes = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw',
+  sizes = '(max-width: 768px) 50vw, (max-width: 1024px) 34vw, (max-width: 1280px) 25vw, 20vw',
 }: ImageCardProps) {
   const thumbnailUrl = generationThumbnailUrl(image)
   const modelLabel = image.model ? (MODEL_DISPLAY_NAMES[image.model] ?? image.model) : null
