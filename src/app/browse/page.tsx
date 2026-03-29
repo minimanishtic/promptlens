@@ -11,6 +11,7 @@ import { NavAuthButton } from '@/components/UserMenu'
 import MobileNav from '@/components/MobileNav'
 import { SlidersHorizontal, X, FilterX } from 'lucide-react'
 import { KNOWN_PRIMARY_CATEGORIES } from '@/lib/primary-categories'
+import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 
 const PAGE_SIZE = 24
 
@@ -153,7 +154,7 @@ function BrowseContent() {
 
       let query = supabase
         .from('generations')
-        .select('*')
+        .select(GENERATION_GRID_SELECT)
         .order('sort_priority', { ascending: true })
         .order(currentSort, { ascending: false })
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)

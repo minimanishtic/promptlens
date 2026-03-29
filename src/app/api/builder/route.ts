@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database, Generation } from '@/types/database'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
+import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 import { getModelDisplayName } from '@/lib/search-filter-options'
 import {
   BUILDER_CATEGORIES,
@@ -230,7 +231,7 @@ async function handleResults(selections: Record<string, string>): Promise<Builde
   for (const { relaxedLevel, ...filters } of filterSets) {
     let q = supabase
       .from('generations')
-      .select('*')
+      .select(GENERATION_GRID_SELECT)
       .eq('has_prompt', true)
       .not('output_image_url', 'is', null)
       .not('prompt', 'is', null)

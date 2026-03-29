@@ -24,6 +24,7 @@ import {
   type SearchPillState,
   type SearchSidebarState,
 } from '@/lib/search-filter-options'
+import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 import type { SearchGlobalFilterCounts } from '@/lib/search-global-filter-counts'
 
 const ITEMS_PER_PAGE = 40
@@ -182,7 +183,7 @@ function SearchContent() {
     try {
       if (!qParam.trim()) {
         let q = applySearchFiltersToQuery(
-          supabase.from('generations').select('*', { count: 'exact' }),
+          supabase.from('generations').select(GENERATION_GRID_SELECT, { count: 'exact' }),
           pills,
           sidebar,
         )
@@ -227,7 +228,7 @@ function SearchContent() {
 
       let fq = supabase
         .from('generations')
-        .select('*', { count: 'exact' })
+        .select(GENERATION_GRID_SELECT, { count: 'exact' })
         .textSearch('prompt', qParam.trim(), { type: 'websearch' })
       fq = applySearchFiltersToQuery(fq, pills, sidebar)
       const { data: ftData, error: ftErr, count: ftCount } = await fq

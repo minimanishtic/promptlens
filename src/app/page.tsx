@@ -8,6 +8,7 @@ import type { Database } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import { KNOWN_PRIMARY_CATEGORIES } from '@/lib/primary-categories'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
+import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 import TopNav from '@/components/TopNav'
 import SplitHero from '@/components/SplitHero'
 
@@ -65,7 +66,7 @@ async function getIndexedPromptCount(): Promise<number> {
 async function getTrendingImages(): Promise<Generation[]> {
   const { data } = await db
     .from('generations')
-    .select('*')
+    .select(GENERATION_GRID_SELECT)
     .order('sort_priority', { ascending: true })
     .order('views_count', { ascending: false })
     .limit(12)

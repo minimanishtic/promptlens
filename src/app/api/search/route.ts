@@ -7,6 +7,7 @@ import {
   type SearchPillState,
   type SearchSidebarState,
 } from '@/lib/search-filter-options'
+import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 
 // Server-side Supabase client (uses same anon key — RLS allows public reads)
 const supabase = createClient<Database>(
@@ -212,7 +213,7 @@ export async function POST(req: Request) {
     const ids = rpcRows.map((r) => r.job_set_id)
     const { data: fullData, error: fullError } = await supabase
       .from('generations')
-      .select('*')
+      .select(GENERATION_GRID_SELECT)
       .in('job_set_id', ids)
 
     if (fullError) {

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database, Generation } from '@/types/database'
+import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 
 function db() {
   return createClient<Database>(
@@ -44,7 +45,7 @@ export async function getImageDetailPayload(jobSetId: string): Promise<{
   if (gen.primary_category || gen.visual_style) {
     let query = supabase
       .from('generations')
-      .select('*')
+      .select(GENERATION_GRID_SELECT)
       .neq('job_set_id', jobSetId)
       .order('sort_priority', { ascending: true })
       .order('views_count', { ascending: false })

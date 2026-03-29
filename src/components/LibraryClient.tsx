@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import type { SavedPrompt, PromptCollection, Generation } from '@/types/database'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
+import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 
 // Sort option
 type SortBy = 'created_at' | 'views_count' | 'prompt'
@@ -232,7 +233,7 @@ export default function LibraryClient() {
 
     const { data: genData, error: genError } = await supabase
       .from('generations')
-      .select('*')
+      .select(GENERATION_GRID_SELECT)
       .in('job_set_id', ids)
 
     if (genError) {

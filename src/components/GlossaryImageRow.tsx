@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { Generation } from '@/types/database'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
+import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 
 interface GlossaryImageRowProps {
   column: string
@@ -34,7 +35,7 @@ export default function GlossaryImageRow({ column, value }: GlossaryImageRowProp
           const [imagesRes, countRes] = await Promise.all([
             supabase
               .from('generations')
-              .select('*')
+              .select(GENERATION_GRID_SELECT)
               .eq(column, value)
               .not('output_image_url', 'is', null)
               .order('sort_priority', { ascending: true })

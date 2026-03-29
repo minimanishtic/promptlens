@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database, Generation } from '@/types/database'
+import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 
 const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,7 +30,7 @@ export async function fetchTemplates(filterModel?: string): Promise<{
   // Build query — fetch top 5 per category for all 8 categories in one shot
   let query = supabase
     .from('generations')
-    .select('*')
+    .select(GENERATION_GRID_SELECT)
     .in('primary_category', CATEGORIES)
     .eq('has_prompt', true)
     .not('output_image_url', 'is', null)
