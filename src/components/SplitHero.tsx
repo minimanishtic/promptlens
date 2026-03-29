@@ -165,6 +165,12 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
           }}
         />
         <div className="pointer-events-none relative z-[30] ml-auto flex w-full max-w-[min(100%,32.4rem)] flex-col pl-3 pr-5 sm:pl-4 sm:pr-6 md:max-w-[min(calc(50vw-2.5rem),37.8rem)] md:pl-5 md:pr-10 lg:max-w-[min(calc(50vw-2rem),39.6rem)]">
+          <Link
+            href="/search"
+            className="pointer-events-auto mb-3 block text-left text-base text-white/70"
+          >
+            Use search or reverse-engineer an existing image
+          </Link>
           <div className="pointer-events-auto rounded-xl border border-[rgba(220,38,38,0.25)] bg-[rgba(220,38,38,0.08)] px-4 py-4 transition-colors group-hover:border-[rgba(220,38,38,0.4)] md:px-[1.35rem] md:py-[1.125rem]">
             <div className="flex items-center gap-2.5">
               <Link href="/search" className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -197,11 +203,8 @@ export default function SplitHero({ bgUrls, promptsIndexed }: SplitHeroProps) {
               </button>
             </div>
           </div>
-          <Link href="/search" className="pointer-events-auto mt-2 block text-left">
-            <p className="text-[10px] text-[rgba(255,140,140,0.22)] md:text-[11px]">
-              Use search or reverse-engineer an existing image
-            </p>
-            <div className="mt-[1.125rem] flex flex-wrap gap-1.5">
+          <Link href="/search" className="pointer-events-auto mt-[1.125rem] block text-left">
+            <div className="flex flex-wrap gap-1.5">
               {['cinematic rain scene', 'product flat-lay', 'neon street portrait'].map((t) => (
                 <span
                   key={t}
