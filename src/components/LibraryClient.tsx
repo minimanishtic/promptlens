@@ -304,10 +304,14 @@ export default function LibraryClient() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 gap-4 text-center">
+      <div className="flex flex-col items-center justify-center py-32 gap-4 text-center px-4">
         <BookMarked className="w-12 h-12 text-zinc-700" />
-        <p className="text-zinc-400 font-medium">Sign in to access your library</p>
-        <button onClick={() => openAuth('login')} className="px-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium rounded-lg transition-colors">
+        <p className="text-zinc-400 font-medium max-w-md">Sign in to access your prompt library</p>
+        <button
+          type="button"
+          onClick={() => openAuth('login')}
+          className="px-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium rounded-lg transition-colors"
+        >
           Sign in
         </button>
       </div>
