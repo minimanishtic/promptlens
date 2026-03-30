@@ -8,6 +8,7 @@ import {
   type SearchSidebarState,
 } from '@/lib/search-filter-options'
 import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
+import { rateLimit } from '@/lib/rate-limit'
 
 // Server-side Supabase client (uses same anon key — RLS allows public reads)
 const supabase = createClient<Database>(
@@ -100,6 +101,23 @@ function hasExtraSearchFilters(pills: SearchPillState, sidebar: SearchSidebarSta
 }
 
 export async function POST(req: Request) {
+  const forwarded = req.headers.get('x-forwarded-for')
+  const ip = forwarded?.split(',')[0]?.trim() ?? 'unknown'
+  const { allowed } = rateLimit(ip, 30, 60_000)
+
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please wait a moment.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': '60',
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    )
+  }
+
   try {
     const body = (await req.json()) as Record<string, unknown> & {
       query?: string
