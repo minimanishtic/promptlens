@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
-import { Bookmark, Clipboard, Sparkles } from 'lucide-react'
+import { Bookmark, Check, Copy, Sparkles } from 'lucide-react'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
 import { logEvent } from '@/lib/analytics'
 import { getModelDisplayName, type SearchGridItem } from '@/lib/search-filter-options'
@@ -90,12 +90,12 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
         await navigator.clipboard.writeText(p)
         void logEvent('copy', { generation_id: item.job_set_id, model: item.model })
         setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
+        setTimeout(() => setCopied(false), 2000)
       } catch {
         /* ignore */
       }
     },
-    [item.prompt],
+    [item.prompt, item.job_set_id, item.model],
   )
 
   const toggleSave = useCallback(
@@ -176,10 +176,12 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
       <button
         type="button"
         onClick={copyPrompt}
-        className="absolute bottom-2 right-2 z-[2] flex rounded-lg bg-[rgba(220,38,38,0.85)] p-1.5 text-white md:hidden"
-        aria-label="Copy prompt"
+        className={`absolute bottom-2 right-2 z-[2] flex items-center gap-1 rounded-lg p-1.5 text-white md:hidden transition-colors ${
+          copied ? 'bg-green-600' : 'bg-[rgba(220,38,38,0.85)]'
+        }`}
+        aria-label={copied ? 'Copied' : 'Copy prompt'}
       >
-        <Clipboard className="h-4 w-4" />
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </button>
       {modelLabel && (
         <div className="absolute bottom-2 left-2 z-[2] flex max-w-[55%] items-center gap-1 rounded-xl border border-white/20 bg-black/60 px-2 py-0.5 md:hidden">
@@ -240,10 +242,13 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
         <button
           type="button"
           onClick={copyPrompt}
-          className="pointer-events-auto absolute bottom-2 right-2 flex items-center gap-1 rounded-lg bg-[rgba(220,38,38,0.8)] px-2 py-1.5 text-white"
+          className={`pointer-events-auto absolute bottom-2 right-2 flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-white transition-colors ${
+            copied ? 'bg-green-600' : 'bg-[rgba(220,38,38,0.8)]'
+          }`}
+          aria-label={copied ? 'Copied' : 'Copy prompt'}
         >
-          <Clipboard className="h-4 w-4" />
-          {copied ? 'Copied!' : ''}
+          {copied ? <Check className="h-4 w-4 shrink-0" /> : <Copy className="h-4 w-4 shrink-0" />}
+          {copied ? 'Copied!' : 'Copy'}
         </button>
       </div>
 

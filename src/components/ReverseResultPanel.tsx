@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Check, Copy } from 'lucide-react'
 import {
   formatForModel,
   MODELS,
@@ -241,8 +242,11 @@ export default function ReverseResultPanel({
               <button
                 type="button"
                 onClick={() => void copyToClipboard(formattedPrompt, 'prompt')}
-                className="absolute right-3 top-3 rounded-lg bg-red-600 px-3 py-1.5 text-xs text-white transition-colors hover:bg-red-500"
+                className={`absolute right-3 top-3 flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-colors ${
+                  copiedPrompt ? 'bg-green-600' : 'bg-red-600 hover:bg-red-500'
+                }`}
               >
+                {copiedPrompt ? <Check className="h-3.5 w-3.5 shrink-0" /> : <Copy className="h-3.5 w-3.5 shrink-0" />}
                 {copiedPrompt ? 'Copied!' : 'Copy'}
               </button>
             </div>
@@ -257,8 +261,13 @@ export default function ReverseResultPanel({
               <button
                 type="button"
                 onClick={() => void copyToClipboard(result.negative_prompt, 'negative')}
-                className="absolute right-3 top-3 rounded border border-white/10 px-2 py-1 text-xs text-white/40 transition-colors hover:border-white/20 hover:text-white"
+                className={`absolute right-3 top-3 flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-medium transition-colors ${
+                  copiedNegative
+                    ? 'border-green-600/50 bg-green-600 text-white'
+                    : 'border-white/10 text-white/40 hover:border-white/20 hover:text-white'
+                }`}
               >
+                {copiedNegative ? <Check className="h-3.5 w-3.5 shrink-0" /> : <Copy className="h-3.5 w-3.5 shrink-0" />}
                 {copiedNegative ? 'Copied!' : 'Copy'}
               </button>
             </div>

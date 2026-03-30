@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { X, Copy, Share2 } from 'lucide-react'
+import { X, Copy, Share2, Check } from 'lucide-react'
 import type { Generation } from '@/types/database'
 import { getModelDisplayName } from '@/lib/search-filter-options'
 import { logEvent } from '@/lib/analytics'
@@ -37,7 +37,8 @@ export default function ImageSlidePanel({
   detailSource = 'unknown',
 }: Props) {
   const [similar, setSimilar] = useState<Generation[]>([])
-  const [copyFlash, setCopyFlash] = useState(false)
+  const [promptCopied, setPromptCopied] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
   const detailLoggedRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -80,8 +81,8 @@ export default function ImageSlidePanel({
     try {
       await navigator.clipboard.writeText(gen.prompt)
       void logEvent('copy', { generation_id: gen.job_set_id, model: gen.model })
-      setCopyFlash(true)
-      setTimeout(() => setCopyFlash(false), 1500)
+      setPromptCopied(true)
+      setTimeout(() => setPromptCopied(false), 2000)
     } catch {
       /* ignore */
     }
@@ -93,6 +94,8 @@ export default function ImageSlidePanel({
     try {
       await navigator.clipboard.writeText(url)
       void logEvent('copy', { generation_id: gen.job_set_id, kind: 'share_link' })
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2000)
     } catch {
       /* ignore */
     }
@@ -179,18 +182,36 @@ export default function ImageSlidePanel({
             <button
               type="button"
               onClick={() => void copyPrompt()}
-              className="rounded-lg bg-[#dc2626] px-4 py-2.5 text-sm font-medium text-white hover:opacity-90"
+              className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+                promptCopied
+                  ? 'bg-green-600 text-white'
+                  : 'bg-[#dc2626] text-white hover:opacity-90'
+              }`}
             >
-              Copy prompt
+              {promptCopied ? (
+                <>
+                  <Check className="h-4 w-4 shrink-0" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 shrink-0" />
+                  Copy prompt
+                </>
+              )}
             </button>
             <SavePromptButton jobSetId={gen.job_set_id} />
             <button
               type="button"
               onClick={() => void shareUrl()}
-              className="flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm text-white/80 hover:bg-white/5"
+              className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm transition-colors ${
+                shareCopied
+                  ? 'border-green-600/50 bg-green-600 text-white'
+                  : 'border-white/20 text-white/80 hover:bg-white/5'
+              }`}
             >
-              <Share2 className="h-4 w-4" />
-              Share
+              {shareCopied ? <Check className="h-4 w-4 shrink-0" /> : <Share2 className="h-4 w-4 shrink-0" />}
+              {shareCopied ? 'Copied!' : 'Share'}
             </button>
           </div>
 
@@ -198,15 +219,18 @@ export default function ImageSlidePanel({
             <button
               type="button"
               onClick={() => void copyPrompt()}
-              className="absolute right-3 top-3 rounded p-1 text-white/40 hover:bg-white/10 hover:text-white"
-              aria-label="Copy prompt"
+              className={`absolute right-3 top-3 flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors ${
+                promptCopied
+                  ? 'bg-green-600 text-white'
+                  : 'text-white/40 hover:bg-white/10 hover:text-white'
+              }`}
+              aria-label={promptCopied ? 'Copied' : 'Copy prompt'}
             >
-              <Copy className="h-4 w-4" />
+              {promptCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </button>
             <pre className="whitespace-pre-wrap font-mono text-[13px] leading-relaxed text-white/[0.8] pr-8">
               {gen.prompt ?? 'No prompt'}
             </pre>
-            {copyFlash && <span className="mt-2 block text-xs text-green-400">Copied</span>}
           </div>
 
           <div className="mt-6 space-y-2">

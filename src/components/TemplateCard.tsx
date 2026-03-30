@@ -45,9 +45,9 @@ export default function TemplateCard({ template, rank }: Props) {
     }
     if (copiedOk) {
       void logEvent('copy', { generation_id: template.job_set_id, model: template.model })
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -133,10 +133,10 @@ export default function TemplateCard({ template, rank }: Props) {
         <div className="flex items-center gap-2 pt-1 border-t border-zinc-800">
           <button
             onClick={handleCopy}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
               copied
-                ? 'bg-green-600/20 text-green-400 border border-green-600/30'
-                : 'bg-sky-500 hover:bg-sky-400 text-white'
+                ? 'bg-green-600 text-white border-green-600'
+                : 'bg-sky-500 hover:bg-sky-400 text-white border-transparent'
             }`}
           >
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
