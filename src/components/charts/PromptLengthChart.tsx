@@ -12,7 +12,7 @@ import {
   Legend,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
-import type { PromptLengthBucket } from '@/lib/analytics'
+import type { PromptLengthBucket } from '@/lib/analytics-dashboard'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
 

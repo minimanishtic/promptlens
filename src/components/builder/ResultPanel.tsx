@@ -7,6 +7,7 @@ import { Eye, Heart, Check, Copy, ExternalLink, ChevronDown, ChevronUp, RefreshC
 import type { Generation } from '@/types/database'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
 import { getModelDisplayName } from '@/lib/search-filter-options'
+import { logEvent } from '@/lib/analytics'
 
 const RELAX_LABELS = [
   'Exact match',
@@ -43,10 +44,24 @@ function PromptResultCard({ gen, rank }: { gen: Generation; rank: number }) {
   const displayPrompt = isTruncated && !expanded ? prompt.slice(0, 250) + '…' : prompt
 
   const handleCopy = async () => {
-    try { await navigator.clipboard.writeText(prompt) } catch {
-      const el = document.createElement('textarea')
-      el.value = prompt
-      document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el)
+    let copiedOk = false
+    try {
+      await navigator.clipboard.writeText(prompt)
+      copiedOk = true
+    } catch {
+      try {
+        const el = document.createElement('textarea')
+        el.value = prompt
+        document.body.appendChild(el)
+        el.select()
+        copiedOk = document.execCommand('copy')
+        document.body.removeChild(el)
+      } catch {
+        /* ignore */
+      }
+    }
+    if (copiedOk) {
+      void logEvent('copy', { generation_id: gen.job_set_id, model: gen.model })
     }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)

@@ -1,6 +1,6 @@
 'use client'
 
-import type { HeatmapCell } from '@/lib/analytics'
+import type { HeatmapCell } from '@/lib/analytics-dashboard'
 
 const LIGHTINGS = ['Studio', 'Natural/Golden Hour', 'Flash/Harsh', 'Moody/Low-key', 'Neon/Colored', 'Backlit']
 const MOODS = ['Warm', 'Cold', 'Dramatic', 'Intimate', 'Energetic', 'Nostalgic', 'Dark/Gritty', 'Clean/Minimal']

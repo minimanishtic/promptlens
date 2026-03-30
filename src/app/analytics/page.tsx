@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import nextDynamic from 'next/dynamic'
 import { BarChart2, TrendingUp, Image as ImageIcon, Zap, Tag } from 'lucide-react'
-import { fetchAllAnalytics } from '@/lib/analytics'
+import { fetchAllAnalytics } from '@/lib/analytics-dashboard'
 import { NavAuthButton } from '@/components/UserMenu'
 import MobileNav from '@/components/MobileNav'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'

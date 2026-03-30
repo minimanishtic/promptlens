@@ -2,7 +2,7 @@
 
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut } from 'react-chartjs-2'
-import type { VisualStyleRow } from '@/lib/analytics'
+import type { VisualStyleRow } from '@/lib/analytics-dashboard'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 

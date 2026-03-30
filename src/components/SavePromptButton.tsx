@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Bookmark, BookmarkCheck, Loader2, X, Tag } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
+import { logEvent } from '@/lib/analytics'
 import { useAuth } from '@/context/AuthContext'
 import type { PromptCollection } from '@/types/database'
 
@@ -99,6 +100,7 @@ export default function SavePromptButton({ jobSetId }: Props) {
 
       setSaved(true)
       setSavedId(data?.id ?? null)
+      void logEvent('save_complete', { generation_id: jobSetId })
       setShowPanel(false)
       setNotes('')
       setTagsInput('')
@@ -114,7 +116,10 @@ export default function SavePromptButton({ jobSetId }: Props) {
   if (!user) {
     return (
       <button
-        onClick={() => openAuth('login')}
+        onClick={() => {
+          void logEvent('save_attempt', { generation_id: jobSetId })
+          openAuth('login')
+        }}
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-zinc-400 border border-zinc-700 hover:border-zinc-500 hover:text-white transition-colors"
       >
         <Bookmark className="w-4 h-4" />
@@ -148,7 +153,10 @@ export default function SavePromptButton({ jobSetId }: Props) {
   return (
     <div className="relative">
       <button
-        onClick={() => setShowPanel(p => !p)}
+        onClick={() => {
+          void logEvent('save_attempt', { generation_id: jobSetId })
+          setShowPanel((p) => !p)
+        }}
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 transition-colors"
       >
         <Bookmark className="w-4 h-4" />

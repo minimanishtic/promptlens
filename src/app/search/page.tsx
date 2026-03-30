@@ -26,6 +26,7 @@ import {
 } from '@/lib/search-filter-options'
 import { GENERATION_GRID_SELECT } from '@/lib/generation-grid-select'
 import type { SearchGlobalFilterCounts } from '@/lib/search-global-filter-counts'
+import { logSearch, serializeSearchFiltersForLog } from '@/lib/analytics'
 
 const ITEMS_PER_PAGE = 40
 
@@ -116,6 +117,7 @@ function SearchContent() {
   const mainListGenRef = useRef(0)
   const vibeFetchIdRef = useRef(0)
   const builderHandoffAppliedRef = useRef(false)
+  const searchLogThrottleRef = useRef<{ sig: string; t: number } | null>(null)
 
   const filtersKey = useMemo(() => JSON.stringify({ q: qParam, pills, sidebar }), [qParam, pills, sidebar])
   const filtersKeyRef = useRef<string | null>(null)
@@ -125,6 +127,30 @@ function SearchContent() {
     }
     filtersKeyRef.current = filtersKey
   }, [filtersKey])
+
+  const emitSearchLog = useCallback(
+    (opts: {
+      search_type: 'semantic' | 'fulltext' | 'filter'
+      results_count: number
+      query: string
+      page: number
+      vibe: boolean
+    }) => {
+      const filtersUsed = serializeSearchFiltersForLog(pills, sidebar)
+      const sig = `${opts.query}|${opts.search_type}|${opts.results_count}|${filtersKey}|${opts.page}|${opts.vibe}`
+      const now = Date.now()
+      const prev = searchLogThrottleRef.current
+      if (prev && prev.sig === sig && now - prev.t < 1800) return
+      searchLogThrottleRef.current = { sig, t: now }
+      void logSearch({
+        query: opts.query,
+        search_type: opts.search_type,
+        results_count: opts.results_count,
+        filters_used: filtersUsed,
+      })
+    },
+    [pills, sidebar, filtersKey],
+  )
 
   useEffect(() => {
     setInputValue(qParam)
@@ -197,6 +223,13 @@ function SearchContent() {
         setItems(rows)
         setTotalCount(count ?? rows.length)
         setDataSource('trending')
+        emitSearchLog({
+          query: qParam.trim() || '(browse)',
+          search_type: 'filter',
+          results_count: rows.length,
+          page: currentPage,
+          vibe: false,
+        })
         return
       }
 
@@ -223,6 +256,13 @@ function SearchContent() {
         setItems(semJson.results)
         setTotalCount(semJson.totalCount ?? semJson.results.length)
         setDataSource('semantic')
+        emitSearchLog({
+          query: qParam.trim(),
+          search_type: 'semantic',
+          results_count: semJson.results.length,
+          page: currentPage,
+          vibe: false,
+        })
         return
       }
 
@@ -241,6 +281,13 @@ function SearchContent() {
       setItems(ftRows)
       setTotalCount(ftCount ?? ftRows.length)
       setDataSource('fulltext')
+      emitSearchLog({
+        query: qParam.trim(),
+        search_type: 'fulltext',
+        results_count: ftRows.length,
+        page: currentPage,
+        vibe: false,
+      })
     } catch (err) {
       console.error(err)
       if (gen === mainListGenRef.current) {
@@ -251,7 +298,7 @@ function SearchContent() {
     } finally {
       if (gen === mainListGenRef.current) setLoading(false)
     }
-  }, [qParam, pills, sidebar, currentPage])
+  }, [qParam, pills, sidebar, currentPage, emitSearchLog])
 
   useEffect(() => {
     if (vibeMode) return
@@ -289,6 +336,13 @@ function SearchContent() {
       setItems(rows)
       setTotalCount(json.totalCount ?? rows.length)
       setDataSource('semantic')
+      emitSearchLog({
+        query: vibeAnchorId ? `(similar:${vibeAnchorId})` : '(similar)',
+        search_type: 'semantic',
+        results_count: rows.length,
+        page: currentPage,
+        vibe: true,
+      })
     } catch (e) {
       console.error(e)
       if (vf === vibeFetchIdRef.current) {
@@ -298,7 +352,7 @@ function SearchContent() {
     } finally {
       if (vf === vibeFetchIdRef.current) setLoading(false)
     }
-  }, [vibeAnchorId, currentPage, pills, sidebar])
+  }, [vibeAnchorId, currentPage, pills, sidebar, emitSearchLog])
 
   useEffect(() => {
     if (!vibeMode || !vibeAnchorId) return
@@ -638,6 +692,7 @@ function SearchContent() {
       <ImageSlidePanel
         open={panelOpen}
         gen={displayedGen}
+        detailSource="search"
         onClose={() => {
           setPanelOpen(false)
           setPanelLeadItem(null)

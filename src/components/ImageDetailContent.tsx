@@ -6,6 +6,7 @@ import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import CopyPromptButton from '@/components/CopyPromptButton'
 import SavePromptButton from '@/components/SavePromptButton'
 import ImageCard from '@/components/ImageCard'
+import DetailViewTracker from '@/components/DetailViewTracker'
 
 function getReferenceUrls(raw: unknown): string[] {
   if (!Array.isArray(raw)) return []
@@ -66,6 +67,7 @@ export default function ImageDetailContent({
 
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-6 sm:py-8">
+      <DetailViewTracker jobSetId={gen.job_set_id} source="image_page" />
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start">
         <div className="space-y-4">
           <div className="relative w-full rounded-xl overflow-hidden bg-zinc-900">
@@ -151,7 +153,13 @@ export default function ImageDetailContent({
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Prompt</p>
               <div className="flex items-center gap-2">
-                {gen.prompt && <CopyPromptButton prompt={gen.prompt} />}
+                {gen.prompt && (
+                  <CopyPromptButton
+                    prompt={gen.prompt}
+                    generationId={gen.job_set_id}
+                    model={gen.model}
+                  />
+                )}
                 <SavePromptButton jobSetId={gen.job_set_id} />
               </div>
             </div>

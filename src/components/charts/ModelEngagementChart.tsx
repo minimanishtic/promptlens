@@ -10,7 +10,7 @@ import {
   Legend,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
-import type { ModelEngagementRow } from '@/lib/analytics'
+import type { ModelEngagementRow } from '@/lib/analytics-dashboard'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)

@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { X, Copy, Share2 } from 'lucide-react'
 import type { Generation } from '@/types/database'
 import { getModelDisplayName } from '@/lib/search-filter-options'
+import { logEvent } from '@/lib/analytics'
 import SavePromptButton from '@/components/SavePromptButton'
 import { supabase as browserSupabase } from '@/lib/supabase'
 
@@ -16,6 +17,8 @@ interface Props {
   index: number
   onNavigate: (nextIndex: number) => void
   onPickSimilar: (g: Generation) => void
+  /** For analytics detail_view source */
+  detailSource?: string
 }
 
 function browseCategoryHref(value: string | null) {
@@ -31,9 +34,11 @@ export default function ImageSlidePanel({
   index,
   onNavigate,
   onPickSimilar,
+  detailSource = 'unknown',
 }: Props) {
   const [similar, setSimilar] = useState<Generation[]>([])
   const [copyFlash, setCopyFlash] = useState(false)
+  const detailLoggedRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!gen) {
@@ -59,22 +64,35 @@ export default function ImageSlidePanel({
     }
   }, [gen])
 
+  useEffect(() => {
+    if (!open || !gen) return
+    if (detailLoggedRef.current === gen.job_set_id) return
+    detailLoggedRef.current = gen.job_set_id
+    void logEvent('detail_view', { generation_id: gen.job_set_id, source: detailSource })
+  }, [open, gen, detailSource])
+
+  useEffect(() => {
+    if (!open) detailLoggedRef.current = null
+  }, [open])
+
   const copyPrompt = useCallback(async () => {
     if (!gen?.prompt) return
     try {
       await navigator.clipboard.writeText(gen.prompt)
+      void logEvent('copy', { generation_id: gen.job_set_id, model: gen.model })
       setCopyFlash(true)
       setTimeout(() => setCopyFlash(false), 1500)
     } catch {
       /* ignore */
     }
-  }, [gen?.prompt])
+  }, [gen])
 
   const shareUrl = useCallback(async () => {
     if (!gen) return
     const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/image/${gen.job_set_id}`
     try {
       await navigator.clipboard.writeText(url)
+      void logEvent('copy', { generation_id: gen.job_set_id, kind: 'share_link' })
     } catch {
       /* ignore */
     }

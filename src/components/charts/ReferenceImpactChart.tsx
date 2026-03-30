@@ -10,7 +10,7 @@ import {
   Legend,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
-import type { ReferenceImpactRow } from '@/lib/analytics'
+import type { ReferenceImpactRow } from '@/lib/analytics-dashboard'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 

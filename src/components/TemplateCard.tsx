@@ -7,6 +7,7 @@ import { Eye, Heart, ChevronDown, ChevronUp, ExternalLink, Check, Copy } from 'l
 import type { Generation } from '@/types/database'
 import { MODEL_DISPLAY_NAMES } from '@/types/database'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
+import { logEvent } from '@/lib/analytics'
 
 const TRUNCATE_LENGTH = 200
 
@@ -26,15 +27,24 @@ export default function TemplateCard({ template, rank }: Props) {
   const displayPrompt = isTruncated && !expanded ? prompt.slice(0, TRUNCATE_LENGTH) + '…' : prompt
 
   const handleCopy = async () => {
+    let copiedOk = false
     try {
       await navigator.clipboard.writeText(prompt)
+      copiedOk = true
     } catch {
-      const el = document.createElement('textarea')
-      el.value = prompt
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+      try {
+        const el = document.createElement('textarea')
+        el.value = prompt
+        document.body.appendChild(el)
+        el.select()
+        copiedOk = document.execCommand('copy')
+        document.body.removeChild(el)
+      } catch {
+        /* ignore */
+      }
+    }
+    if (copiedOk) {
+      void logEvent('copy', { generation_id: template.job_set_id, model: template.model })
     }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)

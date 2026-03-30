@@ -1,12 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   formatForModel,
   MODELS,
   type ModelId,
   type ReverseResult,
 } from '@/lib/prompt-formatters'
+import { logEvent } from '@/lib/analytics'
 
 export interface ReverseResultPanelProps {
   open: boolean
@@ -58,6 +59,7 @@ export default function ReverseResultPanel({
   const [selectedModel, setSelectedModel] = useState<ModelId>('flux')
   const [copiedPrompt, setCopiedPrompt] = useState(false)
   const [copiedNegative, setCopiedNegative] = useState(false)
+  const reverseLoggedKeyRef = useRef<string | null>(null)
 
   const modelInfo = MODELS.find((m) => m.id === selectedModel)!
   const formattedPrompt = result ? formatForModel(selectedModel, result.elements) : ''
@@ -79,9 +81,27 @@ export default function ReverseResultPanel({
     return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  useEffect(() => {
+    if (!open) {
+      reverseLoggedKeyRef.current = null
+      return
+    }
+    if (isLoading || !result) return
+    const key = previewUrl ?? `result:${result.category}`
+    if (reverseLoggedKeyRef.current === key) return
+    reverseLoggedKeyRef.current = key
+    void logEvent('reverse_upload', { model_selected: selectedModel })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- selectedModel: snapshot at result; omit to avoid pill-change re-runs
+  }, [open, isLoading, result, previewUrl])
+
   const copyToClipboard = useCallback(async (text: string, type: 'prompt' | 'negative') => {
     try {
       await navigator.clipboard.writeText(text)
+      void logEvent('copy', {
+        context: 'reverse_engineer',
+        copy_type: type,
+        model_selected: selectedModel,
+      })
       if (type === 'prompt') {
         setCopiedPrompt(true)
         setTimeout(() => setCopiedPrompt(false), 2000)
@@ -92,7 +112,7 @@ export default function ReverseResultPanel({
     } catch {
       /* ignore */
     }
-  }, [])
+  }, [selectedModel])
 
   if (!open) return null
 

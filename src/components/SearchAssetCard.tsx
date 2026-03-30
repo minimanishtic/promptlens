@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Bookmark, Clipboard, Sparkles } from 'lucide-react'
 import { generationThumbnailUrl } from '@/lib/generation-image-url'
+import { logEvent } from '@/lib/analytics'
 import { getModelDisplayName, type SearchGridItem } from '@/lib/search-filter-options'
 import { useAuth } from '@/context/AuthContext'
 import { createClient } from '@/lib/supabase-client'
@@ -87,6 +88,7 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
       if (!p) return
       try {
         await navigator.clipboard.writeText(p)
+        void logEvent('copy', { generation_id: item.job_set_id, model: item.model })
         setCopied(true)
         setTimeout(() => setCopied(false), 1500)
       } catch {
@@ -99,6 +101,7 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
   const toggleSave = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation()
+      void logEvent('save_attempt', { generation_id: item.job_set_id })
       if (!user) {
         openAuth('login')
         return
@@ -111,7 +114,10 @@ export default function SearchAssetCard({ item, onOpen, onTagClick, onMoreLikeTh
         return
       }
       const { error } = await supabase.from('saved_prompts').insert({ user_id: user.id, job_set_id: item.job_set_id })
-      if (!error) setSaved(true)
+      if (!error) {
+        setSaved(true)
+        void logEvent('save_complete', { generation_id: item.job_set_id })
+      }
     },
     [user, openAuth, saved, item.job_set_id],
   )
