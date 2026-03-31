@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | Promere",
   },
   description: SITE_DESCRIPTION,
-  metadataBase: new URL("https://promptlens-two.vercel.app"),
+  metadataBase: new URL("https://promere.vercel.app"),
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    url: "https://promptlens-two.vercel.app",
+    url: "https://promere.vercel.app",
     siteName: "Promere",
     images: [
       {

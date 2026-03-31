@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     title: 'Promere — The Prompt Intelligence Platform',
     description:
       'Search, reverse-engineer, organize, and connect your AI prompts. Browse 6,800+ community images.',
-    url: 'https://promptlens-two.vercel.app',
+    url: 'https://promere.vercel.app',
   },
 }
 
