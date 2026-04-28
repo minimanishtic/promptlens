@@ -136,7 +136,7 @@ export async function POST(req: Request) {
       sidebar_camera_simulation?: string[]
     }
 
-    const { query, similar_job_set_id, category, model, threshold = 0.5 } = body
+    const { query, similar_job_set_id, category, model, threshold = 0.15 } = body
     const { pills: filterPills, sidebar: filterSidebar } = pillSidebarFromBody(body)
     const offset = typeof body.offset === 'number' && body.offset >= 0 ? body.offset : 0
     const limit = Math.min(typeof body.limit === 'number' && body.limit > 0 ? body.limit : 40, 80)
