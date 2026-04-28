@@ -29,6 +29,8 @@ import type { SearchGlobalFilterCounts } from '@/lib/search-global-filter-counts
 import { logSearch, serializeSearchFiltersForLog } from '@/lib/analytics'
 
 const ITEMS_PER_PAGE = 40
+/** Client-side cap for full-text fallback (Supabase statement timeout on heavy FTS). */
+const FULLTEXT_FALLBACK_TIMEOUT_MS = 14_000
 
 type DataSource = 'trending' | 'semantic' | 'fulltext'
 
@@ -266,20 +268,43 @@ function SearchContent() {
         return
       }
 
-      let fq = supabase
-        .from('generations')
-        .select(GENERATION_GRID_SELECT, { count: 'exact' })
-        .textSearch('prompt', qParam.trim(), { type: 'websearch' })
-      fq = applySearchFiltersToQuery(fq, pills, sidebar)
-      const { data: ftData, error: ftErr, count: ftCount } = await fq
-        .order('sort_priority', { ascending: true })
-        .order('views_count', { ascending: false })
-        .range(offset, offset + ITEMS_PER_PAGE - 1)
-      if (ftErr) throw ftErr
-      if (gen !== mainListGenRef.current) return
-      const ftRows = (ftData as Generation[]) ?? []
+      let ftRows: Generation[] = []
+      let ftCount: number | null = 0
+      let ftsTimeoutId: ReturnType<typeof setTimeout> | undefined
+      try {
+        let fq = supabase
+          .from('generations')
+          .select(GENERATION_GRID_SELECT, { count: 'exact' })
+          .textSearch('prompt', qParam.trim(), { type: 'websearch' })
+        fq = applySearchFiltersToQuery(fq, pills, sidebar)
+        const ftsPromise = fq
+          .order('sort_priority', { ascending: true })
+          .order('views_count', { ascending: false })
+          .range(offset, offset + ITEMS_PER_PAGE - 1)
+
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          ftsTimeoutId = setTimeout(() => reject(new Error('FULLTEXT_TIMEOUT')), FULLTEXT_FALLBACK_TIMEOUT_MS)
+        })
+
+        const { data: ftData, error: ftErr, count } = (await Promise.race([
+          ftsPromise,
+          timeoutPromise,
+        ])) as { data: unknown; error: { message?: string; code?: string } | null; count: number | null }
+
+        if (ftsTimeoutId) clearTimeout(ftsTimeoutId)
+        if (gen !== mainListGenRef.current) return
+        if (ftErr) throw ftErr
+        ftRows = (ftData as Generation[]) ?? []
+        ftCount = count ?? ftRows.length
+      } catch {
+        if (ftsTimeoutId) clearTimeout(ftsTimeoutId)
+        if (gen !== mainListGenRef.current) return
+        ftRows = []
+        ftCount = 0
+      }
+
       setItems(ftRows)
-      setTotalCount(ftCount ?? ftRows.length)
+      setTotalCount(ftCount ?? 0)
       setDataSource('fulltext')
       emitSearchLog({
         query: qParam.trim(),
@@ -648,6 +673,7 @@ function SearchContent() {
             onMoreLikeThis={handleMoreLikeThis}
             vibeMode={vibeMode}
             onExitVibe={exitVibe}
+            filterOnlyEmptyCaption={qParam.trim() ? null : 'No images match your filters.'}
           />
 
           {!loading && items.length === 0 && qParam.trim() && (

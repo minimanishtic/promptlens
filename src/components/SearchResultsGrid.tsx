@@ -16,6 +16,8 @@ interface Props {
   onMoreLikeThis: (item: SearchGridItem) => void
   vibeMode: boolean
   onExitVibe: () => void
+  /** When null and list is empty, no inline caption (e.g. search page shows “No results” below). */
+  filterOnlyEmptyCaption?: string | null
 }
 
 const SKELETON_PLACEHOLDERS = 20
@@ -54,6 +56,7 @@ export default function SearchResultsGrid({
   onMoreLikeThis,
   vibeMode,
   onExitVibe,
+  filterOnlyEmptyCaption = 'No images match your filters.',
 }: Props) {
   const showSkeleton = !!loading && items.length === 0
   const pageButtons = useMemo(() => visiblePageNumbers(currentPage, totalPages), [currentPage, totalPages])
@@ -88,7 +91,10 @@ export default function SearchResultsGrid({
           ))}
         </div>
       ) : items.length === 0 ? (
-        !loading && <p className="py-20 text-center text-sm text-white/40">No images match your filters.</p>
+        !loading &&
+        filterOnlyEmptyCaption != null && (
+          <p className="py-20 text-center text-sm text-white/40">{filterOnlyEmptyCaption}</p>
+        )
       ) : (
         <div className="search-grid">
           {items.map((item) => (
