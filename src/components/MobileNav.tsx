@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, BookMarked, LogOut, User } from 'lucide-react'
+import { Menu, X, BookMarked, LogOut, User, Key } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 const NAV_LINKS = [
@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: '/templates', label: 'Templates' },
   { href: '/builder',   label: 'Builder' },
   { href: '/library',   label: 'Library' },
+  { href: '/docs/api',  label: 'API Docs' },
 ]
 
 export default function MobileNav() {
@@ -137,6 +138,15 @@ export default function MobileNav() {
                 </div>
                 <p className="text-sm text-zinc-300 truncate">{user.email}</p>
               </div>
+              {/* Dashboard shortcut (signed-in only) */}
+              <Link
+                href="/dashboard"
+                onClick={close}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+              >
+                <Key className="w-4 h-4 text-sky-400 shrink-0" />
+                Dashboard
+              </Link>
               {/* Library shortcut */}
               <Link
                 href="/library"
