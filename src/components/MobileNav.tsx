@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: '/templates', label: 'Templates' },
   { href: '/builder',   label: 'Builder' },
   { href: '/library',   label: 'Library' },
+  { href: '/pricing',   label: 'Pricing' },
   { href: '/docs/api',  label: 'API Docs' },
 ]
 

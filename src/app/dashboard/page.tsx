@@ -6,6 +6,7 @@ import { Key, Plus, Trash2, Copy, Check, AlertTriangle, BarChart3, Zap } from 'l
 import { useAuth } from '@/context/AuthContext'
 import { NavAuthButton } from '@/components/UserMenu'
 import MobileNav from '@/components/MobileNav'
+import CheckoutButton from '@/components/CheckoutButton'
 
 interface KeyRecord {
   id: string
@@ -194,6 +195,7 @@ function DashboardNav() {
           <Link href="/glossary"  className="hover:text-white transition-colors">Glossary</Link>
           <Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link>
           <Link href="/templates" className="hover:text-white transition-colors">Templates</Link>
+          <Link href="/pricing"   className="hover:text-white transition-colors">Pricing</Link>
           <Link href="/docs/api"  className="hover:text-white transition-colors">API Docs</Link>
           <Link href="/dashboard" className="text-white font-medium">Dashboard</Link>
         </nav>
@@ -381,6 +383,13 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
 
 function TierSection({ keys }: { keys: KeyRecord[] | null }) {
   const active = keys?.find((k) => k.is_active)
+  const tier = (active?.tier ?? 'free') as 'free' | 'pro' | 'team' | string
+  const badgeClass =
+    tier === 'team'
+      ? 'bg-violet-500/15 border-violet-500/30 text-violet-300'
+      : tier === 'pro'
+        ? 'bg-sky-500/15 border-sky-500/30 text-sky-300'
+        : 'bg-zinc-500/15 border-zinc-500/30 text-zinc-300'
   return (
     <section className="rounded-xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
       <div className="px-5 py-4 border-b border-zinc-800">
@@ -389,30 +398,67 @@ function TierSection({ keys }: { keys: KeyRecord[] | null }) {
           Tier
         </h2>
       </div>
-      <div className="px-5 py-5 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-        <div>
-          <div className="text-sm text-zinc-300">
-            Current tier: <span className="font-semibold text-white">{active?.tier ?? 'free'}</span>
+      <div className="px-5 py-5 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+          <div>
+            <div className="text-sm text-zinc-300 flex items-center gap-2">
+              Current tier:
+              <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${badgeClass}`}>
+                {tier}
+              </span>
+            </div>
+            <div className="text-xs text-zinc-500 mt-1">
+              {active
+                ? `Daily limits: ${active.daily_search_limit} search · ${active.daily_reverse_limit} reverse · ${active.daily_format_limit} format`
+                : 'No active key — generate one to see your limits.'}
+            </div>
           </div>
-          <div className="text-xs text-zinc-500 mt-1">
-            {active
-              ? `Daily limits: ${active.daily_search_limit} search · ${active.daily_reverse_limit} reverse · ${active.daily_format_limit} format`
-              : 'No active key — generate one to see your limits.'}
-          </div>
+          <Link
+            href="/pricing"
+            className="text-xs text-sky-400 hover:underline"
+          >
+            Compare plans →
+          </Link>
         </div>
-        <Link
-          href="/pricing"
-          className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-white text-zinc-950 text-sm font-semibold hover:bg-zinc-100 transition-colors"
-        >
-          Upgrade
-        </Link>
+        {tier === 'free' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <CheckoutButton
+              plan="pro"
+              label="Upgrade to Pro — $9/mo"
+              className="inline-flex w-full items-center justify-center px-4 py-2 rounded-lg bg-white text-zinc-950 text-sm font-semibold hover:bg-zinc-100 disabled:opacity-60 transition-colors"
+            />
+            <CheckoutButton
+              plan="team"
+              label="Upgrade to Team — $29/mo"
+              className="inline-flex w-full items-center justify-center px-4 py-2 rounded-lg border border-zinc-700 text-sm text-zinc-300 hover:bg-zinc-800 disabled:opacity-60 transition-colors"
+            />
+          </div>
+        )}
+        {tier === 'pro' && (
+          <CheckoutButton
+            plan="team"
+            label="Upgrade to Team — $29/mo"
+            className="inline-flex w-full sm:w-auto self-start items-center justify-center px-4 py-2 rounded-lg bg-white text-zinc-950 text-sm font-semibold hover:bg-zinc-100 disabled:opacity-60 transition-colors"
+          />
+        )}
+        {tier === 'team' && (
+          <div className="text-xs text-zinc-400">
+            You&apos;re on the highest tier. Need higher limits?{' '}
+            <a href="mailto:hi@promere.app" className="text-sky-400 hover:underline">Contact us</a>.
+          </div>
+        )}
+        {tier !== 'free' && (
+          <div className="text-xs text-zinc-500">
+            Manage subscription via your Razorpay receipt email — a self-serve portal is coming soon.
+          </div>
+        )}
       </div>
     </section>
   )
 }
 
 function QuickStartSection({ prefix }: { prefix: string }) {
-  const snippet = `curl -X POST https://promere.app/api/v1/search \\
+  const snippet = `curl -X POST https://www.promere.app/api/v1/search \\
   -H "Authorization: Bearer ${prefix === 'pk_xxxxxxxx' ? 'pk_your_key_here' : `${prefix}…`}" \\
   -H "Content-Type: application/json" \\
   -d '{"query": "cinematic portrait in rain", "limit": 5}'`
