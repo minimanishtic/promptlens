@@ -21,6 +21,9 @@ const ENDPOINT_LIMITS: Record<string, { field: LimitField; pattern: string }> = 
   '/api/v1/search':  { field: 'daily_search_limit',  pattern: '/api/v1/search' },
   '/api/v1/reverse': { field: 'daily_reverse_limit', pattern: '/api/v1/reverse' },
   '/api/v1/format':  { field: 'daily_format_limit',  pattern: '/api/v1/format' },
+  // Parse uses the same field as format but is counted in its own pool so it
+  // doesn't deplete /format's daily allowance.
+  '/api/v1/parse':   { field: 'daily_format_limit',  pattern: '/api/v1/parse' },
 }
 
 export const CORS_HEADERS: Record<string, string> = {

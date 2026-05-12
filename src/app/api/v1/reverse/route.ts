@@ -36,14 +36,25 @@ RULES:
 - Write elements as standalone phrases/sentences, NOT as a combined prompt`
 
 const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
+type ImageMediaType = (typeof VALID_TYPES)[number]
 const MAX_BYTES = 10 * 1024 * 1024
+const URL_FETCH_TIMEOUT_MS = 5000
 
-async function reverseHandler(req: NextRequest): Promise<NextResponse> {
-  const anthropicKey = process.env.ANTHROPIC_API_KEY
-  if (!anthropicKey || anthropicKey.trim() === '') {
-    return apiError('internal_error', 'Image analysis service unavailable', 503)
-  }
+function normalizeMediaType(raw: string | null | undefined): ImageMediaType | null {
+  if (!raw) return null
+  // Strip parameters like "image/jpeg; charset=binary".
+  const base = raw.split(';')[0].trim().toLowerCase()
+  if (base === 'image/jpg') return 'image/jpeg'
+  if ((VALID_TYPES as readonly string[]).includes(base)) return base as ImageMediaType
+  return null
+}
 
+interface ImagePayload {
+  buffer: Buffer
+  mediaType: ImageMediaType
+}
+
+async function loadFromMultipart(req: NextRequest): Promise<ImagePayload | NextResponse> {
   let formData: FormData
   try {
     formData = await req.formData()
@@ -54,12 +65,12 @@ async function reverseHandler(req: NextRequest): Promise<NextResponse> {
       400,
     )
   }
-
   const file = formData.get('image')
   if (!file || !(file instanceof File)) {
     return apiError('bad_request', 'No image provided. Send as form field "image".', 400)
   }
-  if (!VALID_TYPES.includes(file.type as (typeof VALID_TYPES)[number])) {
+  const mediaType = normalizeMediaType(file.type)
+  if (!mediaType) {
     return apiError(
       'bad_request',
       'Invalid file type. Use image/jpeg, image/png, or image/webp.',
@@ -69,10 +80,103 @@ async function reverseHandler(req: NextRequest): Promise<NextResponse> {
   if (file.size > MAX_BYTES) {
     return apiError('bad_request', 'Image too large. Max 10MB.', 400)
   }
+  const buffer = Buffer.from(await file.arrayBuffer())
+  return { buffer, mediaType }
+}
 
-  const bytes = await file.arrayBuffer()
-  const base64 = Buffer.from(bytes).toString('base64')
-  const mediaType = file.type as 'image/jpeg' | 'image/png' | 'image/webp'
+async function loadFromUrl(req: NextRequest): Promise<ImagePayload | NextResponse> {
+  let body: { image_url?: unknown }
+  try {
+    body = (await req.json()) as { image_url?: unknown }
+  } catch {
+    return apiError('bad_request', 'Request body must be valid JSON', 400)
+  }
+  const imageUrl = body.image_url
+  if (typeof imageUrl !== 'string' || !imageUrl) {
+    return apiError('bad_request', 'image_url is required', 400)
+  }
+  let parsedUrl: URL
+  try {
+    parsedUrl = new URL(imageUrl)
+  } catch {
+    return apiError('bad_request', 'Invalid URL format', 400)
+  }
+  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+    return apiError('bad_request', 'Only HTTP/HTTPS URLs are supported', 400)
+  }
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), URL_FETCH_TIMEOUT_MS)
+  try {
+    const imgRes = await fetch(parsedUrl, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Promere/1.0 (+https://www.promere.app)' },
+      redirect: 'follow',
+    })
+    clearTimeout(timeout)
+
+    if (!imgRes.ok) {
+      return apiError('bad_request', `Failed to fetch image: HTTP ${imgRes.status}`, 400)
+    }
+
+    const declaredLength = imgRes.headers.get('content-length')
+    if (declaredLength) {
+      const n = Number.parseInt(declaredLength, 10)
+      if (Number.isFinite(n) && n > MAX_BYTES) {
+        return apiError('bad_request', 'Image exceeds 10MB limit', 400)
+      }
+    }
+
+    const mediaType = normalizeMediaType(imgRes.headers.get('content-type'))
+    if (!mediaType) {
+      return apiError(
+        'bad_request',
+        'URL does not point to a supported image (image/jpeg, image/png, image/webp).',
+        400,
+      )
+    }
+
+    const buf = Buffer.from(await imgRes.arrayBuffer())
+    if (buf.byteLength > MAX_BYTES) {
+      return apiError('bad_request', 'Image exceeds 10MB limit', 400)
+    }
+    return { buffer: buf, mediaType }
+  } catch (err) {
+    clearTimeout(timeout)
+    if (err instanceof Error && err.name === 'AbortError') {
+      return apiError('bad_request', 'Image fetch timed out (5s limit)', 408)
+    }
+    const msg = err instanceof Error ? err.message : 'Unknown error'
+    return apiError('bad_request', `Failed to fetch image: ${msg}`, 400)
+  }
+}
+
+async function reverseHandler(req: NextRequest): Promise<NextResponse> {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY
+  if (!anthropicKey || anthropicKey.trim() === '') {
+    return apiError('internal_error', 'Image analysis service unavailable', 503)
+  }
+
+  const contentType = req.headers.get('content-type') || ''
+  let imagePayload: ImagePayload
+  if (contentType.includes('application/json')) {
+    const result = await loadFromUrl(req)
+    if (result instanceof NextResponse) return result
+    imagePayload = result
+  } else if (contentType.includes('multipart/form-data')) {
+    const result = await loadFromMultipart(req)
+    if (result instanceof NextResponse) return result
+    imagePayload = result
+  } else {
+    return apiError(
+      'bad_request',
+      'Content-Type must be application/json (with image_url) or multipart/form-data (with image file).',
+      400,
+    )
+  }
+
+  const base64 = imagePayload.buffer.toString('base64')
+  const mediaType = imagePayload.mediaType
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',

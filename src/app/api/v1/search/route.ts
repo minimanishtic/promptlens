@@ -78,19 +78,59 @@ async function searchHandler(req: NextRequest): Promise<NextResponse> {
     return apiError('search_failed', rpcError.message, 500)
   }
 
-  const results = ((rpcData ?? []) as SearchRpcRow[]).map((row) => ({
-    id: row.job_set_id,
-    prompt: row.prompt,
-    model: row.model,
-    similarity: row.similarity,
-    metadata: {
-      primary_category: row.primary_category,
-      sub_category: row.sub_category,
-      visual_style: row.visual_style,
-      lighting: row.lighting,
-      mood: row.mood,
-    },
-  }))
+  const rpcRows = (rpcData ?? []) as SearchRpcRow[]
+
+  // search_prompts RPC doesn't return composition; fetch it for the matched ids
+  // so we can populate the elements field without altering the RPC.
+  const compositionByJobSetId = new Map<string, string | null>()
+  if (rpcRows.length > 0) {
+    const ids = rpcRows.map((r) => r.job_set_id)
+    const { data: extras, error: extrasErr } = await supabase
+      .from('generations')
+      .select('job_set_id, composition')
+      .in('job_set_id', ids)
+    if (extrasErr) {
+      // Non-fatal — just skip the enrichment and return null compositions.
+      console.warn('[/api/v1/search] composition lookup failed:', extrasErr.message)
+    } else {
+      for (const r of (extras as Array<{ job_set_id: string; composition: string | null }> | null) ?? []) {
+        compositionByJobSetId.set(r.job_set_id, r.composition)
+      }
+    }
+  }
+
+  const results = rpcRows.map((row) => {
+    const composition = compositionByJobSetId.get(row.job_set_id) ?? null
+    const firstSentence = row.prompt
+      ? row.prompt.split('.')[0]?.trim() || null
+      : null
+    return {
+      id: row.job_set_id,
+      prompt: row.prompt,
+      model: row.model,
+      similarity: row.similarity,
+      // Lightweight elements derived from existing classification fields.
+      // For a full 8-field structured parse, call /api/v1/parse with `prompt`.
+      elements: {
+        subject: firstSentence,
+        action_pose: null,
+        setting: null,
+        lighting: row.lighting || null,
+        composition: composition,
+        style: row.visual_style || null,
+        mood: row.mood || null,
+        technical: null,
+      },
+      metadata: {
+        primary_category: row.primary_category,
+        sub_category: row.sub_category,
+        visual_style: row.visual_style,
+        lighting: row.lighting,
+        mood: row.mood,
+        composition: composition,
+      },
+    }
+  })
 
   return NextResponse.json({ results, total: results.length, query })
 }

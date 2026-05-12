@@ -29,7 +29,7 @@ export default function ApiDocsPage() {
               the <Link href="/dashboard" className="text-sky-400 hover:underline">dashboard</Link>.
             </p>
             <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-mono">
-              https://promere.app/api/v1
+              https://www.promere.app/api/v1
             </div>
           </header>
 
@@ -40,7 +40,7 @@ export default function ApiDocsPage() {
               Get a key from the <Link href="/dashboard" className="text-sky-400 hover:underline">dashboard</Link> —
               it&apos;s shown once at creation and never again.
             </p>
-            <CodeBlock language="bash">{`curl https://promere.app/api/v1/search \\
+            <CodeBlock language="bash">{`curl https://www.promere.app/api/v1/search \\
   -H "Authorization: Bearer pk_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{"query": "neon-lit alley at midnight", "limit": 5}'`}</CodeBlock>
@@ -111,7 +111,7 @@ export default function ApiDocsPage() {
               ]}
             />
             <SubHeading>Example request</SubHeading>
-            <CodeBlock language="bash">{`curl -X POST https://promere.app/api/v1/search \\
+            <CodeBlock language="bash">{`curl -X POST https://www.promere.app/api/v1/search \\
   -H "Authorization: Bearer pk_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -127,37 +127,68 @@ export default function ApiDocsPage() {
       "prompt": "A portrait of a woman in heavy rain...",
       "model": "flux",
       "similarity": 0.82,
+      "elements": {
+        "subject": "A portrait of a woman in heavy rain",
+        "action_pose": null,
+        "setting": null,
+        "lighting": "low-key, rim",
+        "composition": "medium close-up",
+        "style": "cinematic",
+        "mood": "introspective",
+        "technical": null
+      },
       "metadata": {
         "primary_category": "Portrait & Headshot",
         "sub_category": "Editorial",
         "visual_style": "cinematic",
         "lighting": "low-key, rim",
-        "mood": "introspective"
+        "mood": "introspective",
+        "composition": "medium close-up"
       }
     }
   ],
   "total": 1,
   "query": "cinematic portrait in rain"
 }`}</CodeBlock>
+            <p className="text-xs text-zinc-500 mt-3">
+              The <code className="font-mono">elements</code> object is built from existing
+              classification metadata so you can pipe results straight into{' '}
+              <code className="font-mono">/api/v1/format</code>. For a full 8-field structured
+              parse of the prompt string, pass <code className="font-mono">result.prompt</code>{' '}
+              to <a href="#endpoint-parse" className="text-sky-400 hover:underline">/api/v1/parse</a>.
+            </p>
           </Section>
 
           <Section id="endpoint-reverse" title="POST /api/v1/reverse">
             <p className="text-sm text-zinc-300 mb-4">
               Analyze an image and reverse-engineer it into a structured 8-element prompt recipe.
-              Send as <code className="font-mono text-xs">multipart/form-data</code> with an{' '}
-              <code className="font-mono text-xs">image</code> field. Max 10MB, JPEG/PNG/WebP.
+              Accepts either a file upload (<code className="font-mono text-xs">multipart/form-data</code>)
+              or a JSON body with an <code className="font-mono text-xs">image_url</code>.
+              Max 10MB, JPEG/PNG/WebP.
             </p>
-            <SubHeading>Parameters</SubHeading>
+            <SubHeading>Parameters — file upload</SubHeading>
             <Table
               headers={['Field', 'Type', 'Required', 'Description']}
               rows={[
                 ['image', 'file', 'yes', 'JPEG, PNG, or WebP. Max 10MB.'],
               ]}
             />
-            <SubHeading>Example request</SubHeading>
-            <CodeBlock language="bash">{`curl -X POST https://promere.app/api/v1/reverse \\
+            <SubHeading>Parameters — URL</SubHeading>
+            <Table
+              headers={['Field', 'Type', 'Required', 'Description']}
+              rows={[
+                ['image_url', 'string', 'yes', 'Public http(s) URL. Fetched server-side with a 5s timeout. Must return a supported image content-type.'],
+              ]}
+            />
+            <SubHeading>Example — file upload</SubHeading>
+            <CodeBlock language="bash">{`curl -X POST https://www.promere.app/api/v1/reverse \\
   -H "Authorization: Bearer pk_your_key_here" \\
   -F "image=@/path/to/photo.jpg"`}</CodeBlock>
+            <SubHeading>Example — URL</SubHeading>
+            <CodeBlock language="bash">{`curl -X POST https://www.promere.app/api/v1/reverse \\
+  -H "Authorization: Bearer pk_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{"image_url": "https://example.com/photo.jpg"}'`}</CodeBlock>
             <SubHeading>Example response</SubHeading>
             <CodeBlock language="json">{`{
   "elements": {
@@ -176,6 +207,48 @@ export default function ApiDocsPage() {
 }`}</CodeBlock>
           </Section>
 
+          <Section id="endpoint-parse" title="POST /api/v1/parse">
+            <p className="text-sm text-zinc-300 mb-4">
+              Extract the 8-element structured recipe from a flat prompt string. Useful when
+              you have a raw prompt (from your own data or from <code className="font-mono text-xs">/api/v1/search</code>)
+              and want to retarget it at another model via <code className="font-mono text-xs">/api/v1/format</code>.
+              Backed by Claude Haiku — cheap and fast.
+            </p>
+            <SubHeading>Parameters</SubHeading>
+            <Table
+              headers={['Field', 'Type', 'Required', 'Description']}
+              rows={[
+                ['text', 'string', 'yes', 'The prompt to parse. Max 4000 characters.'],
+              ]}
+            />
+            <SubHeading>Example request</SubHeading>
+            <CodeBlock language="bash">{`curl -X POST https://www.promere.app/api/v1/parse \\
+  -H "Authorization: Bearer pk_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "text": "a cinematic photo of a cyberpunk city at night, 8k, volumetric lighting, neon reflections on wet streets, wide angle"
+  }'`}</CodeBlock>
+            <SubHeading>Example response</SubHeading>
+            <CodeBlock language="json">{`{
+  "elements": {
+    "subject": "a cyberpunk city at night",
+    "action_pose": null,
+    "setting": "urban cyberpunk cityscape with wet streets",
+    "lighting": "volumetric lighting, neon reflections",
+    "composition": "wide angle",
+    "style": "cinematic",
+    "mood": "futuristic, atmospheric",
+    "technical": "8K resolution"
+  },
+  "negative_prompt": null,
+  "category": "Landscape & Architecture"
+}`}</CodeBlock>
+            <p className="text-xs text-zinc-500 mt-3">
+              Counted against <code className="font-mono">daily_format_limit</code> in its own bucket
+              (parse calls don&apos;t deplete <code className="font-mono">/format</code>&apos;s allowance).
+            </p>
+          </Section>
+
           <Section id="endpoint-format" title="POST /api/v1/format">
             <p className="text-sm text-zinc-300 mb-4">
               Format an 8-element recipe into a model-specific prompt string. Pair with{' '}
@@ -191,7 +264,7 @@ export default function ApiDocsPage() {
               ]}
             />
             <SubHeading>Example request</SubHeading>
-            <CodeBlock language="bash">{`curl -X POST https://promere.app/api/v1/format \\
+            <CodeBlock language="bash">{`curl -X POST https://www.promere.app/api/v1/format \\
   -H "Authorization: Bearer pk_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -227,7 +300,7 @@ export default function ApiDocsPage() {
               List all supported model IDs and their prompt-style metadata. <span className="text-zinc-500">Public — no auth required.</span>
             </p>
             <SubHeading>Example request</SubHeading>
-            <CodeBlock language="bash">{`curl https://promere.app/api/v1/models`}</CodeBlock>
+            <CodeBlock language="bash">{`curl https://www.promere.app/api/v1/models`}</CodeBlock>
             <SubHeading>Currently supported</SubHeading>
             <Table
               headers={['id', 'Name', 'Family', 'Supports negative']}
@@ -240,7 +313,7 @@ export default function ApiDocsPage() {
               Fetch a single prompt by its <code className="font-mono text-xs">job_set_id</code>.
             </p>
             <SubHeading>Example request</SubHeading>
-            <CodeBlock language="bash">{`curl https://promere.app/api/v1/prompts/abc123 \\
+            <CodeBlock language="bash">{`curl https://www.promere.app/api/v1/prompts/abc123 \\
   -H "Authorization: Bearer pk_your_key_here"`}</CodeBlock>
             <SubHeading>Example response</SubHeading>
             <CodeBlock language="json">{`{
@@ -288,6 +361,7 @@ function DocsNav() {
           <Link href="/glossary"  className="hover:text-white transition-colors">Glossary</Link>
           <Link href="/analytics" className="hover:text-white transition-colors">Analytics</Link>
           <Link href="/templates" className="hover:text-white transition-colors">Templates</Link>
+          <Link href="/pricing"   className="hover:text-white transition-colors">Pricing</Link>
           <Link href="/docs/api"  className="text-white font-medium">API Docs</Link>
         </nav>
         <div className="ml-auto flex items-center gap-2">
@@ -306,6 +380,7 @@ function Sidebar() {
     { id: 'errors', label: 'Error Format' },
     { id: 'endpoint-search', label: 'POST /search' },
     { id: 'endpoint-reverse', label: 'POST /reverse' },
+    { id: 'endpoint-parse', label: 'POST /parse' },
     { id: 'endpoint-format', label: 'POST /format' },
     { id: 'endpoint-models', label: 'GET /models' },
     { id: 'endpoint-prompts', label: 'GET /prompts/{id}' },
